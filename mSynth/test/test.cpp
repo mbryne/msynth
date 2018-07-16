@@ -1,19 +1,11 @@
 #include <Arduino.h>
-
-//  interface libraries
 #define ENCODER_OPTIMIZE_INTERRUPTS
+
 #include <Bounce.h>
 #include <ResponsiveAnalogRead.h>
 #include <Encoder.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-
-//  audio libraries
-#include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
 
 //////////////////////////////////
 //  INTERFACE SETUP
@@ -69,25 +61,6 @@ long rotaryPosition  = -999;
 LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 //////////////////////////////////
-//  AUDIO SETUP
-//////////////////////////////////
-
-// GUItool: begin automatically generated code
-AudioSynthWaveform       waveform2;      //xy=405.00000762939453,377.5000057220459
-AudioSynthWaveform       waveform1;      //xy=409.00000762939453,318.0000057220459
-AudioSynthNoisePink      pink1;          //xy=417.50000762939453,428.7500066757202
-AudioMixer4              mixer1;         //xy=600.0000114440918,378.75000381469727
-AudioOutputI2S           i2s1;           //xy=747,377
-AudioConnection          patchCord1(waveform2, 0, mixer1, 1);
-AudioConnection          patchCord2(waveform1, 0, mixer1, 0);
-AudioConnection          patchCord3(pink1, 0, mixer1, 2);
-AudioConnection          patchCord4(mixer1, 0, i2s1, 0);
-AudioConnection          patchCord5(mixer1, 0, i2s1, 1);
-AudioControlSGTL5000     sgtl5000_1;     //xy=588,480
-// GUItool: end automatically generated code
-
-
-//////////////////////////////////
 //  SETUP FUNCTION
 //////////////////////////////////
 
@@ -97,56 +70,30 @@ void setup() {
   Serial.begin(9600);
 
   //
-  //  INTERFACE SETUP
+  //  BUTTON SETUP
   //
 
-  //  button setup
   pinMode(BUTTON_1, INPUT_PULLUP);
   pinMode(BUTTON_2, INPUT_PULLUP);
 
-  //  rotary setup
+  //
+  //  ROTARY SETUP
+  //
+
   pinMode(ROTARY_BUTTON_1, INPUT_PULLUP);
 
-  //  lcd setup
-  lcd.init();
+  //
+  //  LCD SETUP
+  //
 
-  // print a message to the LCD.
+  lcd.init();                      // initialize the lcd
+
+  // Print a message to the LCD.
   lcd.backlight();
   lcd.setCursor(3,0);// Set the cursor at line 1, position 3. The second parameter '0' represent line 1.
   lcd.print("Hello, world!");
   lcd.setCursor(1,1);
   lcd.print("mSynth is Live!");// Set the cursor at line 2, position 2.The second parameter '1' represent line 2.
-
-  //
-  //  INTERFACE SETUP
-  //
-
-  AudioMemory(20);
-  // usbMIDI.setHandleControlChange(myControlChange);
-
-  //  enable our sound chip
-  sgtl5000_1.enable();
-  sgtl5000_1.volume(0.32);
-
-  //  waveform 1
-  waveform1.begin(WAVEFORM_SAWTOOTH);
-  waveform1.amplitude(0.75);
-  waveform1.frequency(82.41);
-  waveform1.pulseWidth(0.15);
-
-  //  waveform 2
-  waveform2.begin(WAVEFORM_SAWTOOTH);
-  waveform2.amplitude(0.75);
-  waveform2.frequency(123);
-  waveform2.pulseWidth(0.15);
-
-  //  pink noise
-  pink1.amplitude(1.0);
-
-  //  mixer
-  mixer1.gain(0, 1.0);
-  mixer1.gain(1, 1.0);
-  mixer1.gain(2, 1.0);
 
 }
 
@@ -226,19 +173,5 @@ void loop() {
     Serial.println("rotaryButton: pushed");
   }
 
-  //////////////////////////////////
-  //  UPDATE AUDIO
-  //////////////////////////////////
-
-  //  pots test
-  if(pot4.hasChanged()) {
-      mixer1.gain(0, ((float)pot4.getValue() / 1023));
-  }
-  if(pot5.hasChanged()) {
-      mixer1.gain(1, ((float)pot5.getValue() / 1023));
-  }
-  if(pot6.hasChanged()) {
-      mixer1.gain(2, ((float)pot6.getValue() / 1023));
-  }
 
 }
