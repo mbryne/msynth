@@ -1,5 +1,8 @@
 #include <Arduino.h>
 
+//  msynth libraries
+#include "synth.h"
+
 //  interface libraries
 #define ENCODER_OPTIMIZE_INTERRUPTS
 #include <Bounce.h>
@@ -14,6 +17,12 @@
 #include <SPI.h>
 #include <SD.h>
 #include <SerialFlash.h>
+
+//////////////////////////////////
+//  SYNTH SETUP
+//////////////////////////////////
+
+mSynth synth;
 
 //////////////////////////////////
 //  INTERFACE SETUP
@@ -97,6 +106,12 @@ void setup() {
   Serial.begin(9600);
 
   //
+  //  SYNTH SETUP
+  //
+
+  synth.setup();
+
+  //
   //  INTERFACE SETUP
   //
 
@@ -155,6 +170,8 @@ void setup() {
 //////////////////////////////////
 
 void loop() {
+
+  synth.update();
 
   //////////////////////////////////
   //  UPDATES

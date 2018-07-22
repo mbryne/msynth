@@ -12,6 +12,6 @@ void mMode::setup()
 {
 }
 
-void mMode::loop()
+void mMode::update()
 {
 }

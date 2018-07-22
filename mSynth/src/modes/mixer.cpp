@@ -9,7 +9,12 @@ mModeMixer::~mModeMixer()
 }
 
 void mModeMixer::setup() {
+  Serial.println('Setup mModeMixer');
 }
 
-void mModeMixer::loop() {
+void mModeMixer::update() {
+
+    Serial.print("Update mModeMixer");
+    Serial.println(millis());
+
 }
