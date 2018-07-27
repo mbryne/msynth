@@ -1,17 +1,22 @@
-#ifndef mSynth_h
-#define mSynth_h
+#ifndef Synth_h
+#define Synth_h
 
-#include "mode.h"
-#include "Arduino.h"
+  #include "modes.h"
+  #include "Arduino.h"
 
-  class mSynth {
+  class Synth {
     public:
-      mSynth();
-      ~mSynth();
-      int _maxModes = 1;
-      mMode** modes = new mMode*[1];
+      Synth();
+      ~Synth();
       void setup();
       void update();
+      struct Mode currentMode();
+      void nextMode();
+      void previousMode();
+      void setMode(int mode);
+    private:
+      struct Mode modes[TOTAL_MODES];
+      int _mode;
   };
 
 #endif

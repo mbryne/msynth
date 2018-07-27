@@ -22,7 +22,7 @@
 //  SYNTH SETUP
 //////////////////////////////////
 
-mSynth synth;
+Synth synth;
 
 //////////////////////////////////
 //  INTERFACE SETUP
@@ -64,12 +64,11 @@ const int ROTARY_BUTTON_1 = 24;
 const int ROTARY_DATA_1 = 25;
 const int ROTARY_DATA_2 = 26;
 
-Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 25);
-
-Encoder rotary(ROTARY_DATA_1, ROTARY_DATA_2);
-
 long newPosition;
 long rotaryPosition  = -999;
+
+Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 25);
+Encoder rotary(ROTARY_DATA_1, ROTARY_DATA_2);
 
 //
 //  DISPLAY SETUP
@@ -94,7 +93,6 @@ AudioConnection          patchCord4(mixer1, 0, i2s1, 0);
 AudioConnection          patchCord5(mixer1, 0, i2s1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=588,480
 // GUItool: end automatically generated code
-
 
 //////////////////////////////////
 //  SETUP FUNCTION
@@ -133,7 +131,7 @@ void setup() {
   lcd.print("mSynth is Live!");// Set the cursor at line 2, position 2.The second parameter '1' represent line 2.
 
   //
-  //  INTERFACE SETUP
+  //  AUDIO SETUP
   //
 
   AudioMemory(20);
@@ -171,8 +169,6 @@ void setup() {
 
 void loop() {
 
-  synth.update();
-
   //////////////////////////////////
   //  UPDATES
   //////////////////////////////////
@@ -191,6 +187,9 @@ void loop() {
 
   //  update our rotary bounce
   rotaryButton.update();
+
+  //  update our synth
+  synth.update();
 
   //////////////////////////////////
   //  TESTING
