@@ -11,7 +11,7 @@
 //////////////////////////////////
 
 //  msynth libraries
-#include "modes.h"
+#include "synth.h"
 
 //  interface libraries
 #define ENCODER_OPTIMIZE_INTERRUPTS
@@ -29,6 +29,12 @@
 #include <SerialFlash.h>
 
 //////////////////////////////////
+//  SYNTH SETUP
+//////////////////////////////////
+
+Synth synth = Synth();
+
+//////////////////////////////////
 //  INTERFACE SETUP
 //////////////////////////////////
 
@@ -38,30 +44,27 @@ const int POT_3 = A16;
 const int POT_4 = A17;
 const int POT_5 = A18;
 const int POT_6 = A19;
-const int BUTTON_1 = 31;
-const int BUTTON_2 = 32;
+const int BUTTON_1 = 32;
+const int BUTTON_2 = 31;
 const int ROTARY_BUTTON_1 = 24;
 const int ROTARY_DATA_1 = 25;
 const int ROTARY_DATA_2 = 26;
 
 //  pots setup
-ResponsiveAnalogRead knobs[SYNTH_KNOBS] = {
-  ResponsiveAnalogRead(POT_1, true)
+ResponsiveAnalogRead knobs[SYNTH_KNOBS] {
+  ResponsiveAnalogRead(POT_1, true),
+  ResponsiveAnalogRead(POT_2, true),
+  ResponsiveAnalogRead(POT_3, true),
+  ResponsiveAnalogRead(POT_4, true),
+  ResponsiveAnalogRead(POT_5, true),
+  ResponsiveAnalogRead(POT_6, true)
 };
-ResponsiveAnalogRead pot1(POT_1, true);
-ResponsiveAnalogRead pot2(POT_2, true);
-ResponsiveAnalogRead pot3(POT_3, true);
-ResponsiveAnalogRead pot4(POT_4, true);
-ResponsiveAnalogRead pot5(POT_5, true);
-ResponsiveAnalogRead pot6(POT_6, true);
 
 //  button setup
-Bounce button1 = Bounce(BUTTON_1, 25);
-Bounce button2 = Bounce(BUTTON_2, 25);
+Bounce button1 = Bounce(BUTTON_1, 50);
+Bounce button2 = Bounce(BUTTON_2, 50);
 
 //  rotary setup
-long newPosition;
-long rotaryPosition  = -999;
 Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 25);
 Encoder rotary(ROTARY_DATA_1, ROTARY_DATA_2);
 
@@ -87,6 +90,20 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=588,480
 // GUItool: end automatically generated code
 
 //////////////////////////////////
+//  INTERFACE VARIABLES
+//////////////////////////////////
+
+
+//  buttons setup
+bool leftButtonPressed = false;
+bool rightButtonPressed = false;
+bool rotaryButtonPressed = false;
+
+//  rotary
+long newPosition;
+long rotaryPosition  = -999;
+
+//////////////////////////////////
 //  SETUP FUNCTION
 //////////////////////////////////
 
@@ -94,12 +111,6 @@ void setup() {
 
   // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
-
-  //
-  //  SYNTH SETUP
-  //
-
-  synth.setup();
 
   //
   //  INTERFACE SETUP
@@ -156,97 +167,112 @@ void setup() {
 }
 
 //////////////////////////////////
+//  INTERFACE UPDATES
+//////////////////////////////////
+
+void updateInterface() {
+
+    //
+    //  POLLING UPDATES
+    //
+
+    //  update our pots bounce
+    for( int i = 0; i < SYNTH_KNOBS; i++) {
+      knobs[i].update();
+    }
+
+    //  update our buttons bounce
+    button1.update();
+    button2.update();
+
+    //  update our rotary bounce
+    rotaryButton.update();
+
+    //
+    //  SOMETHINGS HAPPENED
+    //
+
+    //  pots test
+    for( int i = 0; i < SYNTH_KNOBS; i++) {
+      if (knobs[i].hasChanged()) {
+          Serial.print("pot ");
+          Serial.print(i + 1);
+          Serial.print(": ");
+          Serial.println(knobs[i].getValue());
+      }
+    }
+
+    //  buttons test
+    if (button1.fallingEdge()) {
+      leftButtonPressed = true;
+      Serial.println("button1: pushed");
+    }
+    if (button2.fallingEdge()) {
+      rightButtonPressed = true;
+      Serial.println("button2: pushed");
+    }
+
+    //  rotary position test
+    newPosition = rotary.read();
+    if (newPosition != rotaryPosition) {
+      Serial.print("rotary: ");
+      Serial.println(newPosition);
+      rotaryPosition = newPosition;
+    }
+
+    //  rotary buttons test
+    if (rotaryButton.fallingEdge()) {
+      rotaryButtonPressed = true;
+      Serial.println("rotaryButton: pushed");
+    }
+
+
+
+}
+
+void updateSynth() {
+
+    if (leftButtonPressed) {
+      synth.previousMode();
+      leftButtonPressed = false;
+      Serial.print("Previous Mode: ");
+      Serial.println(synth.currentMode().label);
+    }
+
+    if (rightButtonPressed) {
+      synth.nextMode();
+      rightButtonPressed = false;
+      Serial.print("Next Mode: ");
+      Serial.println(synth.currentMode().label);
+    }
+
+}
+
+//////////////////////////////////
 //  LOOP FUNCTIONS
 //////////////////////////////////
 
 void loop() {
-
-  //////////////////////////////////
-  //  UPDATES
-  //////////////////////////////////
-
-  //  update our buttons bounce
-  button1.update();
-  button2.update();
-
-  //  update our pots bounce
-  pot1.update();
-  pot2.update();
-  pot3.update();
-  pot4.update();
-  pot5.update();
-  pot6.update();
-
-  //  update our rotary bounce
-  rotaryButton.update();
-
-  //  update our synth
-  synth.update();
+  updateInterface();
+  updateSynth();
 
   //////////////////////////////////
   //  TESTING
   //////////////////////////////////
-
-  //  pots test
-  if(pot1.hasChanged()) {
-    Serial.print("pot1: ");
-    Serial.println(pot1.getValue() / 4);
-  }
-  if(pot2.hasChanged()) {
-    Serial.print("pot2: ");
-    Serial.println(pot2.getValue() / 4);
-  }
-  if(pot3.hasChanged()) {
-    Serial.print("pot3: ");
-    Serial.println(pot3.getValue() / 4);
-  }
-  if(pot4.hasChanged()) {
-    Serial.print("pot4: ");
-    Serial.println(pot4.getValue() / 4);
-  }
-  if(pot5.hasChanged()) {
-    Serial.print("pot5: ");
-    Serial.println(pot5.getValue() / 4);
-  }
-  if(pot6.hasChanged()) {
-    Serial.print("pot6: ");
-    Serial.println(pot6.getValue() / 4);
-  }
-
-  //  buttons test
-  if (button1.fallingEdge()) {
-    Serial.println("button1: pushed");
-  }
-  if (button2.fallingEdge()) {
-    Serial.println("button2: pushed");
-  }
-
-  //  rotary position test
-  newPosition = rotary.read();
-  if (newPosition != rotaryPosition) {
-    Serial.print("rotary: ");
-    Serial.println(newPosition);
-    rotaryPosition = newPosition;
-  }
-
-  //  rotary buttons test
-  if (rotaryButton.fallingEdge()) {
-    Serial.println("rotaryButton: pushed");
-  }
 
   //////////////////////////////////
   //  UPDATE AUDIO
   //////////////////////////////////
 
   //  pots test
-  if(pot4.hasChanged()) {
-      mixer1.gain(0, ((float)pot4.getValue() / 1023));
-  }
-  if(pot5.hasChanged()) {
-      mixer1.gain(1, ((float)pot5.getValue() / 1023));
-  }
-  if(pot6.hasChanged()) {
-      mixer1.gain(2, ((float)pot6.getValue() / 1023));
-  }
+  // if(pot4.hasChanged()) {
+  //     mixer1.gain(0, ((float)pot4.getValue() / 1023));
+  // }
+  // if(pot5.hasChanged()) {
+  //     mixer1.gain(1, ((float)pot5.getValue() / 1023));
+  // }
+  // if(pot6.hasChanged()) {
+  //     mixer1.gain(2, ((float)pot6.getValue() / 1023));
+  // }
 
 }
