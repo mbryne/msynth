@@ -1,7 +1,17 @@
 #include <Arduino.h>
 
+//  total number of knobs
+#define SYNTH_KNOBS 6
+
+//  total number of knobs
+#define SYNTH_BUTTONS 2
+
+//////////////////////////////////
+//  LIBRARIES
+//////////////////////////////////
+
 //  msynth libraries
-#include "synth.h"
+#include "modes.h"
 
 //  interface libraries
 #define ENCODER_OPTIMIZE_INTERRUPTS
@@ -19,18 +29,8 @@
 #include <SerialFlash.h>
 
 //////////////////////////////////
-//  SYNTH SETUP
-//////////////////////////////////
-
-mSynth synth;
-
-//////////////////////////////////
 //  INTERFACE SETUP
 //////////////////////////////////
-
-//
-//  POTS SETUP
-//
 
 const int POT_1 = A14;
 const int POT_2 = A15;
@@ -38,7 +38,16 @@ const int POT_3 = A16;
 const int POT_4 = A17;
 const int POT_5 = A18;
 const int POT_6 = A19;
+const int BUTTON_1 = 31;
+const int BUTTON_2 = 32;
+const int ROTARY_BUTTON_1 = 24;
+const int ROTARY_DATA_1 = 25;
+const int ROTARY_DATA_2 = 26;
 
+//  pots setup
+ResponsiveAnalogRead knobs[SYNTH_KNOBS] = {
+  ResponsiveAnalogRead(POT_1, true)
+};
 ResponsiveAnalogRead pot1(POT_1, true);
 ResponsiveAnalogRead pot2(POT_2, true);
 ResponsiveAnalogRead pot3(POT_3, true);
@@ -46,35 +55,17 @@ ResponsiveAnalogRead pot4(POT_4, true);
 ResponsiveAnalogRead pot5(POT_5, true);
 ResponsiveAnalogRead pot6(POT_6, true);
 
-//
-//  BUTTON SETUP
-//
-
-const int BUTTON_1 = 31;
-const int BUTTON_2 = 32;
-
+//  button setup
 Bounce button1 = Bounce(BUTTON_1, 25);
 Bounce button2 = Bounce(BUTTON_2, 25);
 
-//
-//  ROTARY SETUP
-//
-
-const int ROTARY_BUTTON_1 = 24;
-const int ROTARY_DATA_1 = 25;
-const int ROTARY_DATA_2 = 26;
-
-Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 25);
-
-Encoder rotary(ROTARY_DATA_1, ROTARY_DATA_2);
-
+//  rotary setup
 long newPosition;
 long rotaryPosition  = -999;
+Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 25);
+Encoder rotary(ROTARY_DATA_1, ROTARY_DATA_2);
 
-//
-//  DISPLAY SETUP
-//
-
+//  display setup
 LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
 
 //////////////////////////////////
@@ -94,7 +85,6 @@ AudioConnection          patchCord4(mixer1, 0, i2s1, 0);
 AudioConnection          patchCord5(mixer1, 0, i2s1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=588,480
 // GUItool: end automatically generated code
-
 
 //////////////////////////////////
 //  SETUP FUNCTION
@@ -133,7 +123,7 @@ void setup() {
   lcd.print("mSynth is Live!");// Set the cursor at line 2, position 2.The second parameter '1' represent line 2.
 
   //
-  //  INTERFACE SETUP
+  //  AUDIO SETUP
   //
 
   AudioMemory(20);
@@ -171,8 +161,6 @@ void setup() {
 
 void loop() {
 
-  synth.update();
-
   //////////////////////////////////
   //  UPDATES
   //////////////////////////////////
@@ -191,6 +179,9 @@ void loop() {
 
   //  update our rotary bounce
   rotaryButton.update();
+
+  //  update our synth
+  synth.update();
 
   //////////////////////////////////
   //  TESTING
