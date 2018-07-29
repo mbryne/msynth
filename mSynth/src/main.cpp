@@ -1,46 +1,17 @@
 #include <Arduino.h>
-
-//  total number of knobs
-#define SYNTH_KNOBS 6
-
-//  total number of knobs
-#define SYNTH_BUTTONS 2
-
-//////////////////////////////////
-//  LIBRARIES
-//////////////////////////////////
-
-//  msynth libraries
-#include "interface.h"
 #include "synth.h"
+#include "hardware.h"
+#include "structs.h"
 
-//  interface libraries
-#define ENCODER_OPTIMIZE_INTERRUPTS
-#include <Bounce.h>
-#include <ResponsiveAnalogRead.h>
-#include <Encoder.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
-//  audio libraries
-#include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
-
-//////////////////////////////////
-//  SYNTH SETUP
-//////////////////////////////////
-
-Synth synth = Synth();
+Synth * synth = Synth::getInstance();
+Hardware * hardware = Hardware::getInstance();
 
 //////////////////////////////////
 //  INTERFACE SETUP
 //////////////////////////////////
 
 //  pots setup
-ResponsiveAnalogRead knobs[SYNTH_KNOBS] {
+ResponsiveAnalogRead knobs[HARDWARE_KNOBS] {
   ResponsiveAnalogRead(POT_1, true),
   ResponsiveAnalogRead(POT_2, true),
   ResponsiveAnalogRead(POT_3, true),
@@ -82,6 +53,8 @@ AudioControlSGTL5000     sgtl5000_1;     //xy=588,480
 //  INTERFACE VARIABLES
 //////////////////////////////////
 
+//  mode setup
+int currentMode = 0;
 
 //  buttons setup
 bool leftButtonPressed = false;
@@ -93,24 +66,89 @@ long newPosition;
 long rotaryPosition  = -999;
 
 //////////////////////////////////
+//  MODE SELEKTOR
+//////////////////////////////////
+
+#define TOTAL_MODES 3
+
+//  our control modes
+struct Mode InterfaceModes[TOTAL_MODES] = {
+
+    {
+      "Mixer",
+      {
+        { Parameters::MASTER_VOLUME, "Master Volume" },
+        { Parameters::NONE, "" },
+        { Parameters::NONE, "Oscillator 1" },
+        { Parameters::NONE, "Sample" },
+        { Parameters::NONE, "" },
+        { Parameters::NONE, "Oscillator 2" },
+        { Parameters::NONE, "Noise" }
+      }
+    },
+    {
+      "Oscillator 1",
+      {
+        { Parameters::NONE, "Type" },
+        { Parameters::NONE, "Shape" },
+        { Parameters::NONE, "Filter" },
+        { Parameters::NONE, "Attack" },
+        { Parameters::NONE, "Decay" },
+        { Parameters::NONE, "Sustain" },
+        { Parameters::NONE, "Release" }
+      }
+    },
+    {
+      "Oscillator 2",
+      {
+        { Parameters::NONE, "Type" },
+        { Parameters::NONE, "Shape" },
+        { Parameters::NONE, "Filter" },
+        { Parameters::NONE, "Attack" },
+        { Parameters::NONE, "Decay" },
+        { Parameters::NONE, "Sustain" },
+        { Parameters::NONE, "Release" }
+      }
+    }
+
+};
+
+struct Mode mode(void) {
+  return InterfaceModes[currentMode];
+}
+
+void setMode(int mode) {
+  if (mode > TOTAL_MODES - 1) {
+      mode = 0;
+  }
+  if (mode < 0) {
+    mode = TOTAL_MODES - 1;
+  }
+  currentMode = mode;
+}
+
+void previousMode(void) {
+  setMode(currentMode - 1);
+}
+
+void nextMode(void) {
+  setMode(currentMode + 1);
+}
+
+//////////////////////////////////
 //  SETUP FUNCTION
 //////////////////////////////////
 
 void setup() {
 
-  // initialize serial communication at 9600 bits per second:
   Serial.begin(9600);
+
+  synth->setup();
+  hardware->setup();
 
   //
   //  INTERFACE SETUP
   //
-
-  //  button setup
-  pinMode(BUTTON_1, INPUT_PULLUP);
-  pinMode(BUTTON_2, INPUT_PULLUP);
-
-  //  rotary setup
-  pinMode(ROTARY_BUTTON_1, INPUT_PULLUP);
 
   //  lcd setup
   lcd.init();
@@ -162,27 +200,11 @@ void setup() {
 void updateInterface() {
 
     //
-    //  POLLING UPDATES
-    //
-
-    //  update our pots bounce
-    for( int i = 0; i < SYNTH_KNOBS; i++) {
-      knobs[i].update();
-    }
-
-    //  update our buttons bounce
-    button1.update();
-    button2.update();
-
-    //  update our rotary bounce
-    rotaryButton.update();
-
-    //
     //  SOMETHINGS HAPPENED
     //
 
     //  pots test
-    for( int i = 0; i < SYNTH_KNOBS; i++) {
+    for( int i = 0; i < HARDWARE_KNOBS; i++) {
       if (knobs[i].hasChanged()) {
           Serial.print("pot ");
           Serial.print(i + 1);
@@ -222,17 +244,17 @@ void updateInterface() {
 void updateSynth() {
 
     if (leftButtonPressed) {
-      synth.previousMode();
-      leftButtonPressed = false;
-      Serial.print("Previous Mode: ");
-      Serial.println(synth.currentMode().label);
+      // synth.previousMode();
+      // leftButtonPressed = false;
+      // Serial.print("Previous Mode: ");
+      // Serial.println(synth.currentMode().label);
     }
 
     if (rightButtonPressed) {
-      synth.nextMode();
-      rightButtonPressed = false;
-      Serial.print("Next Mode: ");
-      Serial.println(synth.currentMode().label);
+      // synth.nextMode();
+      // rightButtonPressed = false;
+      // Serial.print("Next Mode: ");
+      // Serial.println(synth.currentMode().label);
     }
 
 }
@@ -242,8 +264,11 @@ void updateSynth() {
 //////////////////////////////////
 
 void loop() {
-  updateInterface();
-  updateSynth();
+
+  hardware->update();
+  //
+  // updateInterface();
+  // updateSynth();
 
   //////////////////////////////////
   //  TESTING
