@@ -11,6 +11,7 @@
 //////////////////////////////////
 
 //  msynth libraries
+#include "interface.h"
 #include "synth.h"
 
 //  interface libraries
@@ -37,18 +38,6 @@ Synth synth = Synth();
 //////////////////////////////////
 //  INTERFACE SETUP
 //////////////////////////////////
-
-const int POT_1 = A14;
-const int POT_2 = A15;
-const int POT_3 = A16;
-const int POT_4 = A17;
-const int POT_5 = A18;
-const int POT_6 = A19;
-const int BUTTON_1 = 32;
-const int BUTTON_2 = 31;
-const int ROTARY_BUTTON_1 = 24;
-const int ROTARY_DATA_1 = 25;
-const int ROTARY_DATA_2 = 26;
 
 //  pots setup
 ResponsiveAnalogRead knobs[SYNTH_KNOBS] {

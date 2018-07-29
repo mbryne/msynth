@@ -1,5 +1,5 @@
-#ifndef Synth_h
-#define Synth_h
+#ifndef MSYNTH_H
+#define MSYNTH_H
 
   #define TOTAL_CONTROLS 7
   #define TOTAL_MODES 3
