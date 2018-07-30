@@ -4,7 +4,7 @@
 #include "parameters.h"
 
 struct ModeControl {
-  Parameters parameter;
+  Parameter parameter;
   char label[16];
 	int min = 0;
   int max = 127;

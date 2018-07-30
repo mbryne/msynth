@@ -1,7 +1,7 @@
 #ifndef MPARAMETERS_H
 #define MPARAMETERS_H
 
-enum struct Parameters {
+enum struct Parameter {
     MASTER_VOLUME,
     NONE
 };

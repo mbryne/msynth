@@ -26,9 +26,16 @@ bool leftButtonPressed = false;
 bool rightButtonPressed = false;
 bool rotaryButtonPressed = false;
 
+//  controls
+elapsedMillis controlTimer;
+int currentControl = -1;
+int controlUpdateable = 0; // -1 = under, 0 = ok, 1 = over
+int lastControlValue = -1;
+
 //  rotary
 long newPosition;
 long rotaryPosition  = -999;
+
 
 //////////////////////////////////
 //  DISPLAY DEFINITION
@@ -50,7 +57,7 @@ int currentDisplay = DisplayMode::IDLE;
 #define FILLED_CHAR  0xFF
 
 //////////////////////////////////
-//  MODE SELEKTOR
+//  MODE CONTROL
 //////////////////////////////////
 
 extern struct Mode InterfaceModes[totalModes];
@@ -78,7 +85,23 @@ void nextMode(void) {
 }
 
 //////////////////////////////////
-//  DISPLAY SELEKTOR
+//  SYNTH CONTROL
+//////////////////////////////////
+
+struct ModeControl getControl(int control) {
+  return mode().controls[currentControl];
+}
+
+void updateControl( int index, int value ) {
+    ModeControl control = getControl(index);
+}
+
+void getValue( int index ) {
+    ModeControl control = getControl(index);
+}
+
+//////////////////////////////////
+//  DISPLAY CONTROL
 //////////////////////////////////
 
 void setDisplayMode(int newMode) {
@@ -91,7 +114,7 @@ void setDisplayMode(int newMode) {
   displayTimer = 0;
 }
 
-void writeCurrentModeToDisplay() {
+void displayCurrentMode() {
 
   display->clear();
 
@@ -109,6 +132,25 @@ void writeCurrentModeToDisplay() {
 
 }
 
+void displayControlUpdate() {
+
+    ModeControl control = getControl(currentControl);
+
+    //  don't register no parameter updates
+    if (control.parameter == Parameter::NONE) {
+        return;
+    }
+
+    display->clear();
+
+    display->setCursor(0, 0);
+    display->print(control.label);
+
+    Serial.println(control.label);
+
+
+}
+
 //////////////////////////////////
 //  INTERFACE UPDATES
 //////////////////////////////////
@@ -117,14 +159,24 @@ void updateInterface() {
 
     if (hardware->button1Pressed) {
       previousMode();
-      hardware->button1Pressed = false;
       setDisplayMode( DisplayMode::CHANGE_MODE );
+      hardware->button1Pressed = false;
     }
 
     if (hardware->button2Pressed) {
       nextMode();
-      hardware->button2Pressed = false;
       setDisplayMode( DisplayMode::CHANGE_MODE );
+      hardware->button2Pressed = false;
+    }
+
+    for( int k; k < HARDWARE_KNOBS; k++) {
+      if (hardware->knobUpdated[k]) {
+        updateControl( k + 1, hardware->knobValues[k] ); // first control is knob
+        // startControlTimer( k + 1, hardware->knobValues[k] );
+        currentControl = k + 1;
+        setDisplayMode( DisplayMode::UPDATE_CONTROL );
+        hardware->knobUpdated[k] = false;
+      }
     }
 
 }
@@ -137,7 +189,7 @@ void updateDisplay() {
 
         //  update our display
         if (refreshDisplay) {
-          writeCurrentModeToDisplay();
+          displayCurrentMode();
           refreshDisplay = false;
         }
 
@@ -146,11 +198,56 @@ void updateDisplay() {
 
         //  update our display
         if (refreshDisplay) {
-          writeCurrentModeToDisplay();
+          displayCurrentMode();
           refreshDisplay = false;
         }
 
         if (displayTimer > 5000) {
+          setDisplayMode(DisplayMode::IDLE);
+        }
+
+        break;
+      case DisplayMode::UPDATE_CONTROL:
+
+        //  only start updating control display if we have no control
+        if (currentControl == -1) {
+          Serial.print("Start controlTimer: ");
+          Serial.println(currentControl);
+
+          // ModeControl control = getControl(index);
+          // lastControlValue = synth->getValue();
+          controlTimer = 0;
+          lastControlValue = lastValue;
+
+          if (controlTimer < 10) {
+            currentControl = index;
+          }
+
+        }
+
+        //  reset the timer if we are on the same control
+        if (currentControl == index) {
+
+          Serial.print("Reset controlTimer: ");
+          Serial.println(index);
+
+          if (lastControlValue != lastValue) {
+            lastControlValue = lastValue;
+            refreshDisplay = true;
+          }
+
+          controlTimer = 0;
+
+        }
+
+        //  update our display
+        if (refreshDisplay) {
+          displayControlUpdate();
+          refreshDisplay = false;
+        }
+
+        if (displayTimer > 5000) {
+          currentControl = -1;
           setDisplayMode(DisplayMode::IDLE);
         }
 

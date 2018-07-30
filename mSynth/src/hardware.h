@@ -11,6 +11,7 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
+
 //////////////////////////////////
 //  SETTINGS
 //////////////////////////////////
@@ -58,7 +59,6 @@ class Hardware {
       ResponsiveAnalogRead(POT_5, true),
       ResponsiveAnalogRead(POT_6, true)
     };
-    int knobValues[HARDWARE_KNOBS] { -1, -1, -1, -1, -1, -1 };
     Bounce button1 = Bounce(BUTTON_1, 50);
     Bounce button2 = Bounce(BUTTON_2, 50);
     Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 50);
@@ -66,8 +66,11 @@ class Hardware {
     LiquidCrystal_I2C * display;
     bool button1Pressed = false;
     bool button2Pressed = false;
+    int knobValues[HARDWARE_KNOBS] { -1, -1, -1, -1, -1, -1 };
+    bool knobUpdated[HARDWARE_KNOBS] { false, false, false, false, false };
     bool rotaryButtonPressed = false;
     long rotaryPosition  = -999;
+    bool rotaryUpdated = false;
   private:
   	Hardware();
   	Hardware(Hardware const&); // copy disabled

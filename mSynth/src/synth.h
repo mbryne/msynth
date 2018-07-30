@@ -2,6 +2,7 @@
 #define MSYNTH_H
 
 #include "Arduino.h"
+#include "parameters.h"
 
 //  audio libraries
 #include <Audio.h>
@@ -19,6 +20,8 @@ class Synth {
   	};
     void setup();
     void update();
+    int getValue( Parameter parameter );
+    void setValue( Parameter parameter, int value );
   private:
   	Synth();
   	Synth(Synth const&); // copy disabled

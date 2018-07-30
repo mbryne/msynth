@@ -54,6 +54,7 @@ void Hardware::state(void) {
   for( int i = 0; i < HARDWARE_KNOBS; i++) {
     if (knobs[i].hasChanged()) {
       knobValues[i] = knobs[i].getValue();
+      knobUpdated[i] = true;
       Serial.print("pot ");
       Serial.print(i + 1);
       Serial.print(": ");
@@ -66,6 +67,7 @@ void Hardware::state(void) {
     Serial.print("rotary: ");
     Serial.println(newPosition);
     rotaryPosition = newPosition;
+    rotaryUpdated = true;
   }
 
   if (rotaryButton.fallingEdge()) {

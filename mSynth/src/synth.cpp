@@ -51,6 +51,37 @@ void Synth::setup() {
 
 }
 
+int Synth::getValue(Parameter parameter) {
+
+  switch (parameter) {
+    case Parameter::MASTER_VOLUME:
+
+
+      break;
+    case Parameter::NONE:
+      return -1;
+      break;
+  }
+
+  return -1;
+
+}
+
+
+void Synth::setValue(Parameter parameter, int value) {
+
+  switch (parameter) {
+    case Parameter::MASTER_VOLUME:
+
+
+      break;
+    case Parameter::NONE:
+      break;
+  }
+
+
+}
+
 void Synth::update(void) {
 
   // Serial.print("Update mSynth");
