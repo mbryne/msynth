@@ -4,9 +4,11 @@
 #include "synth.h"
 #include "hardware.h"
 #include "parameters.h"
+#include "modes.h"
 
 Synth * synth = Synth::getInstance();
 Hardware * hardware = Hardware::getInstance();
+LiquidCrystal_I2C * display;
 
 //////////////////////////////////
 //  INTERFACE VARIABLES
@@ -16,7 +18,7 @@ Hardware * hardware = Hardware::getInstance();
 bool debug = true;
 
 //  mode setup
-const int totalModes = 3;
+const int totalModes = 9;
 int currentMode = 0;
 
 //  buttons setup
@@ -29,80 +31,42 @@ long newPosition;
 long rotaryPosition  = -999;
 
 //////////////////////////////////
-//  MODE DEFINITION
+//  DISPLAY DEFINITION
 //////////////////////////////////
 
-struct ModeControl {
-  Parameters parameter;
-  char label[16];
-	int min = 0;
-  int max = 127;
+//  available display modes
+enum DisplayMode {
+  IDLE,           //  no display update
+  CHANGE_MODE,    //  writes out the new mode name and puts a character on bottom
+  UPDATE_CONTROL  //  updates the control and returns to default after 2 seconds
 };
 
-struct Mode {
-  char label[16];
-  struct ModeControl controls[7]; // 1 encoder, 6 pots
-};
+//  display setup
+elapsedMillis displayTimer;
+bool refreshDisplay = true;
+int currentDisplay = DisplayMode::IDLE;
 
-//  our control modes
-struct Mode InterfaceModes[totalModes] = {
-
-    {
-      "Mixer",
-      {
-        { Parameters::MASTER_VOLUME, "Master Volume" },
-        { Parameters::NONE, "" },
-        { Parameters::NONE, "Oscillator 1" },
-        { Parameters::NONE, "Sample" },
-        { Parameters::NONE, "" },
-        { Parameters::NONE, "Oscillator 2" },
-        { Parameters::NONE, "Noise" }
-      }
-    },
-    {
-      "Oscillator 1",
-      {
-        { Parameters::NONE, "Type" },
-        { Parameters::NONE, "Shape" },
-        { Parameters::NONE, "Filter" },
-        { Parameters::NONE, "Attack" },
-        { Parameters::NONE, "Decay" },
-        { Parameters::NONE, "Sustain" },
-        { Parameters::NONE, "Release" }
-      }
-    },
-    {
-      "Oscillator 2",
-      {
-        { Parameters::NONE, "Type" },
-        { Parameters::NONE, "Shape" },
-        { Parameters::NONE, "Filter" },
-        { Parameters::NONE, "Attack" },
-        { Parameters::NONE, "Decay" },
-        { Parameters::NONE, "Sustain" },
-        { Parameters::NONE, "Release" }
-      }
-    }
-
-};
-
+//  filled character
+#define FILLED_CHAR  0xFF
 
 //////////////////////////////////
 //  MODE SELEKTOR
 //////////////////////////////////
 
+extern struct Mode InterfaceModes[totalModes];
+
 struct Mode mode(void) {
   return InterfaceModes[currentMode];
 }
 
-void setMode(int mode) {
-  if (mode > totalModes - 1) {
-      mode = 0;
+void setMode(int newMode) {
+  if (newMode > totalModes - 1) {
+      newMode = 0;
   }
-  if (mode < 0) {
-    mode = totalModes - 1;
+  if (newMode < 0) {
+    newMode = totalModes - 1;
   }
-  currentMode = mode;
+  currentMode = newMode;
 }
 
 void previousMode(void) {
@@ -114,6 +78,38 @@ void nextMode(void) {
 }
 
 //////////////////////////////////
+//  DISPLAY SELEKTOR
+//////////////////////////////////
+
+void setDisplayMode(int newMode) {
+  if (debug) {
+    Serial.print("Changing Mode: ");
+    Serial.println(newMode);
+  }
+  currentDisplay = newMode;
+  refreshDisplay = true;
+  displayTimer = 0;
+}
+
+void writeCurrentModeToDisplay() {
+
+  display->clear();
+
+  display->setCursor(0, 0);
+  display->print(mode().label);
+
+  for( int i = 0; i < totalModes; i++) {
+      display->setCursor(i, 1);
+      if (currentMode == i) {
+        display->write(FILLED_CHAR);
+      } else {
+        display->write('-');
+      }
+  }
+
+}
+
+//////////////////////////////////
 //  INTERFACE UPDATES
 //////////////////////////////////
 
@@ -122,12 +118,45 @@ void updateInterface() {
     if (hardware->button1Pressed) {
       previousMode();
       hardware->button1Pressed = false;
+      setDisplayMode( DisplayMode::CHANGE_MODE );
     }
 
     if (hardware->button2Pressed) {
       nextMode();
       hardware->button2Pressed = false;
+      setDisplayMode( DisplayMode::CHANGE_MODE );
     }
+
+}
+
+void updateDisplay() {
+
+    switch (currentDisplay)
+    {
+      case DisplayMode::IDLE:
+
+        //  update our display
+        if (refreshDisplay) {
+          writeCurrentModeToDisplay();
+          refreshDisplay = false;
+        }
+
+        break;
+      case DisplayMode::CHANGE_MODE:
+
+        //  update our display
+        if (refreshDisplay) {
+          writeCurrentModeToDisplay();
+          refreshDisplay = false;
+        }
+
+        if (displayTimer > 5000) {
+          setDisplayMode(DisplayMode::IDLE);
+        }
+
+        break;
+    }
+
 
 }
 
@@ -142,6 +171,8 @@ void setup() {
   hardware->setup();
   synth->setup();
 
+  display = hardware->display;
+
 }
 
 //////////////////////////////////
@@ -154,6 +185,7 @@ void loop() {
   synth->update();
 
   updateInterface();
+  updateDisplay();
 
   //////////////////////////////////
   //  TESTING
