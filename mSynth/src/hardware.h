@@ -1,4 +1,3 @@
-
 #ifndef MHARDWARE_H
 #define MHARDWARE_H
 
@@ -51,19 +50,31 @@ class Hardware {
   	};
     void setup();
     void update();
-    ResponsiveAnalogRead knobs[HARDWARE_KNOBS];
-    Bounce buttons[HARDWARE_BUTTONS] {
-      Bounce(BUTTON_1, 50),
-      Bounce(BUTTON_2, 50),
-      Bounce(ROTARY_BUTTON_1, 50)
+    ResponsiveAnalogRead knobs[HARDWARE_KNOBS] {
+      ResponsiveAnalogRead(POT_1, true),
+      ResponsiveAnalogRead(POT_2, true),
+      ResponsiveAnalogRead(POT_3, true),
+      ResponsiveAnalogRead(POT_4, true),
+      ResponsiveAnalogRead(POT_5, true),
+      ResponsiveAnalogRead(POT_6, true)
     };
-    Encoder encoders[HARDWARE_ENCODERS] {
-      Encoder(ROTARY_DATA_1, ROTARY_DATA_2)
-    };
+    int knobValues[HARDWARE_KNOBS] { -1, -1, -1, -1, -1, -1 };
+    Bounce button1 = Bounce(BUTTON_1, 50);
+    Bounce button2 = Bounce(BUTTON_1, 50);
+    Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 50);
+    Encoder rotary = Encoder(ROTARY_DATA_1, ROTARY_DATA_2);
+    LiquidCrystal_I2C * display;
+    bool button1Pressed = false;
+    bool button2Pressed = false;
+    bool rotaryButtonPressed = false;
+    long rotaryPosition  = -999;
   private:
   	Hardware();
   	Hardware(Hardware const&); // copy disabled
   	void operator=(Hardware const&); // assigment disabled
+    void poll();
+    void state();
+    long newPosition;
 };
 
 
