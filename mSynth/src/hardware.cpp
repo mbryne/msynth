@@ -39,7 +39,6 @@ void Hardware::poll(void) {
 
 }
 
-
 void Hardware::state(void) {
 
   if (button1.fallingEdge()) {
@@ -54,10 +53,11 @@ void Hardware::state(void) {
 
   for( int i = 0; i < HARDWARE_KNOBS; i++) {
     if (knobs[i].hasChanged()) {
+      knobValues[i] = knobs[i].getValue();
       Serial.print("pot ");
       Serial.print(i + 1);
       Serial.print(": ");
-      Serial.println(knobs[i].getValue());
+      Serial.println(knobValues[i]);
     }
   }
 

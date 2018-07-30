@@ -53,9 +53,9 @@ void Synth::setup() {
 
 void Synth::update(void) {
 
-  Serial.print("Update mSynth");
-  Serial.println(millis());
+  // Serial.print("Update mSynth");
+  // Serial.println(millis());
 
-  delay(1000);
+  // delay(1000);
 
 }

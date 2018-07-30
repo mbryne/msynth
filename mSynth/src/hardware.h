@@ -16,12 +16,12 @@
 //////////////////////////////////
 
 //  knobs
-#define POT_1 A14
-#define POT_2 A15
-#define POT_3 A16
-#define POT_4 A17
-#define POT_5 A18
-#define POT_6 A19
+#define POT_1 A19 //  A19
+#define POT_2 A16 //  A16
+#define POT_3 A18 //  A18
+#define POT_4 A15 //  A15
+#define POT_5 A17 //  A17
+#define POT_6 A14 //  A14
 
 //  buttons
 #define BUTTON_1 32
@@ -29,8 +29,8 @@
 
 //  rotary
 #define ROTARY_BUTTON_1 24
-#define ROTARY_DATA_1 25
-#define ROTARY_DATA_2 26
+#define ROTARY_DATA_1 26
+#define ROTARY_DATA_2 25
 
 //  total number of controls
 #define HARDWARE_KNOBS 6
@@ -60,7 +60,7 @@ class Hardware {
     };
     int knobValues[HARDWARE_KNOBS] { -1, -1, -1, -1, -1, -1 };
     Bounce button1 = Bounce(BUTTON_1, 50);
-    Bounce button2 = Bounce(BUTTON_1, 50);
+    Bounce button2 = Bounce(BUTTON_2, 50);
     Bounce rotaryButton = Bounce(ROTARY_BUTTON_1, 50);
     Encoder rotary = Encoder(ROTARY_DATA_1, ROTARY_DATA_2);
     LiquidCrystal_I2C * display;
