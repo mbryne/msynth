@@ -28,6 +28,7 @@ bool rotaryButtonPressed = false;
 
 //  controls
 elapsedMillis controlTimer;
+int updatedControl = -1;
 int currentControl = -1;
 int controlUpdateable = 0; // -1 = under, 0 = ok, 1 = over
 int lastControlValue = -1;
@@ -92,12 +93,14 @@ struct ModeControl getControl(int control) {
   return mode().controls[currentControl];
 }
 
-void updateControl( int index, int value ) {
+void setValue( int index, int value ) {
     ModeControl control = getControl(index);
+    synth->setValue( (Parameter) control.parameter, value );
 }
 
-void getValue( int index ) {
+int getValue( int index ) {
     ModeControl control = getControl(index);
+    return synth->getValue( (Parameter) control.parameter);
 }
 
 //////////////////////////////////
@@ -155,6 +158,10 @@ void displayControlUpdate() {
 //  INTERFACE UPDATES
 //////////////////////////////////
 
+void startControlTimer() {
+
+}
+
 void updateInterface() {
 
     if (hardware->button1Pressed) {
@@ -169,16 +176,22 @@ void updateInterface() {
       hardware->button2Pressed = false;
     }
 
-    for( int k; k < HARDWARE_KNOBS; k++) {
+    for( int k = 0; k < HARDWARE_KNOBS; k++) {
       if (hardware->knobUpdated[k]) {
-        updateControl( k + 1, hardware->knobValues[k] ); // first control is knob
-        // startControlTimer( k + 1, hardware->knobValues[k] );
-        currentControl = k + 1;
+        updatedControl = k + 1;
+        setValue( k + 1, hardware->knobValues[k] ); // first control is knob so k+1
         setDisplayMode( DisplayMode::UPDATE_CONTROL );
         hardware->knobUpdated[k] = false;
       }
     }
 
+    if (hardware->rotaryUpdated) {
+      updatedControl = 0;
+      setValue( 0, hardware->rotaryPosition );
+      setDisplayMode( DisplayMode::UPDATE_CONTROL );
+      hardware->rotaryUpdated = false;
+    }
+    
 }
 
 void updateDisplay() {
@@ -212,35 +225,22 @@ void updateDisplay() {
         //  only start updating control display if we have no control
         if (currentControl == -1) {
           Serial.print("Start controlTimer: ");
-          Serial.println(currentControl);
-
-          // ModeControl control = getControl(index);
-          // lastControlValue = synth->getValue();
+          Serial.println(updatedControl);
+          lastControlValue = getValue(updatedControl);
           controlTimer = 0;
-          lastControlValue = lastValue;
-
-          if (controlTimer < 10) {
-            currentControl = index;
-          }
-
+          currentControl = updatedControl;
+          updatedControl = -1;
         }
 
         //  reset the timer if we are on the same control
-        if (currentControl == index) {
-
+        if (currentControl == updatedControl) {
           Serial.print("Reset controlTimer: ");
-          Serial.println(index);
-
-          if (lastControlValue != lastValue) {
-            lastControlValue = lastValue;
-            refreshDisplay = true;
-          }
-
+          Serial.println(currentControl);
+          lastControlValue = getValue(updatedControl);
+          refreshDisplay = true;
           controlTimer = 0;
-
         }
 
-        //  update our display
         if (refreshDisplay) {
           displayControlUpdate();
           refreshDisplay = false;
@@ -248,6 +248,7 @@ void updateDisplay() {
 
         if (displayTimer > 5000) {
           currentControl = -1;
+          updatedControl = -1;
           setDisplayMode(DisplayMode::IDLE);
         }
 
