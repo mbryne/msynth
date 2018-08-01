@@ -1,3 +1,4 @@
+
 #include <Arduino.h>
 
 #include "hardware.h"
@@ -139,6 +140,8 @@ void displayControlUpdate() {
 
     ModeControl control = getControl(currentControl);
 
+    Serial.println(control.label);
+
     //  don't register no parameter updates
     if (control.parameter == Parameter::NONE) {
         return;
@@ -178,20 +181,24 @@ void updateInterface() {
 
     for( int k = 0; k < HARDWARE_KNOBS; k++) {
       if (hardware->knobUpdated[k]) {
-        updatedControl = k + 1;
         setValue( k + 1, hardware->knobValues[k] ); // first control is knob so k+1
-        setDisplayMode( DisplayMode::UPDATE_CONTROL );
         hardware->knobUpdated[k] = false;
+        if (currentDisplay != DisplayMode::UPDATE_CONTROL ) {
+          updatedControl = k + 1;
+          setDisplayMode( DisplayMode::UPDATE_CONTROL );
+        }
       }
     }
 
     if (hardware->rotaryUpdated) {
-      updatedControl = 0;
       setValue( 0, hardware->rotaryPosition );
-      setDisplayMode( DisplayMode::UPDATE_CONTROL );
       hardware->rotaryUpdated = false;
+      if (currentDisplay != DisplayMode::UPDATE_CONTROL ) {
+        updatedControl = 0;
+        setDisplayMode( DisplayMode::UPDATE_CONTROL );
+      }
     }
-    
+
 }
 
 void updateDisplay() {
@@ -246,7 +253,7 @@ void updateDisplay() {
           refreshDisplay = false;
         }
 
-        if (displayTimer > 5000) {
+        if (displayTimer > 1000) {
           currentControl = -1;
           updatedControl = -1;
           setDisplayMode(DisplayMode::IDLE);
