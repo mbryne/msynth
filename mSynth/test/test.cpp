@@ -11,6 +11,9 @@
 //  INTERFACE SETUP
 //////////////////////////////////
 
+#define BUTTON_COUNT 2
+#define ROTARY_COUNT 7
+
 //
 //  BUTTON SETUP
 //
@@ -18,14 +21,10 @@
 const int BUTTON_1 = 33;
 const int BUTTON_2 = 32;
 
-Bounce button1 = Bounce(BUTTON_1, 50);
-Bounce button2 = Bounce(BUTTON_2, 50);
-
 //
 //  ROTARY SETUP
 //
 
-const int ROTARY_COUNT = 7;
 const int ROTARY_0_BUTTON = 2;
 const int ROTARY_0_DATA_1 = 24;
 const int ROTARY_0_DATA_2 = 25;
@@ -48,43 +47,38 @@ const int ROTARY_6_BUTTON = 8;
 const int ROTARY_6_DATA_1 = 39;
 const int ROTARY_6_DATA_2 = 38;
 
-struct KnobControl {
+//////////////////////////////////
+//  STRUCTS
+//////////////////////////////////
+
+struct RotaryControl {
   Encoder encoder;
   Bounce button;
 	int newPosition = 0;
   int currentPosition = -999;
+  bool pressed = false;
+  bool updated = false;
 };
 
-struct KnobControl Controls[ROTARY_COUNT] = {
-    {
-      Encoder(ROTARY_0_DATA_1, ROTARY_0_DATA_2),
-      Bounce(ROTARY_0_BUTTON, 50)
-    },
-    {
-      Encoder(ROTARY_1_DATA_1, ROTARY_1_DATA_2),
-      Bounce(ROTARY_1_BUTTON, 50)
-    },
-    {
-      Encoder(ROTARY_2_DATA_1, ROTARY_2_DATA_2),
-      Bounce(ROTARY_2_BUTTON, 50)
-    },
-    {
-      Encoder(ROTARY_3_DATA_1, ROTARY_3_DATA_2),
-      Bounce(ROTARY_3_BUTTON, 50)
-    },
-    {
-      Encoder(ROTARY_4_DATA_1, ROTARY_4_DATA_2),
-      Bounce(ROTARY_4_BUTTON, 50)
-    },
-    {
-      Encoder(ROTARY_5_DATA_1, ROTARY_5_DATA_2),
-      Bounce(ROTARY_5_BUTTON, 50)
-    },
-    {
-      Encoder(ROTARY_6_DATA_1, ROTARY_6_DATA_2),
-      Bounce(ROTARY_6_BUTTON, 50)
-    }
-  };
+struct ButtonControl {
+  Bounce button;
+  bool pressed = false;
+};
+
+struct ButtonControl buttons[BUTTON_COUNT] = {
+  { Bounce(BUTTON_1, 50)  },
+  { Bounce(BUTTON_2, 50) }
+};
+
+struct RotaryControl rotary[ROTARY_COUNT] = {
+  { Encoder(ROTARY_0_DATA_1, ROTARY_0_DATA_2), Bounce(ROTARY_0_BUTTON, 50) },
+  { Encoder(ROTARY_1_DATA_1, ROTARY_1_DATA_2), Bounce(ROTARY_1_BUTTON, 50) },
+  { Encoder(ROTARY_2_DATA_1, ROTARY_2_DATA_2), Bounce(ROTARY_2_BUTTON, 50) },
+  { Encoder(ROTARY_3_DATA_1, ROTARY_3_DATA_2), Bounce(ROTARY_3_BUTTON, 50) },
+  { Encoder(ROTARY_4_DATA_1, ROTARY_4_DATA_2), Bounce(ROTARY_4_BUTTON, 50) },
+  { Encoder(ROTARY_5_DATA_1, ROTARY_5_DATA_2), Bounce(ROTARY_5_BUTTON, 50) },
+  { Encoder(ROTARY_6_DATA_1, ROTARY_6_DATA_2), Bounce(ROTARY_6_BUTTON, 50) }
+};
 
 //
 //  DISPLAY SETUP
@@ -145,43 +139,42 @@ void loop() {
   //  UPDATES
   //////////////////////////////////
 
-  //  update our buttons bounce
-  button1.update();
-  button2.update();
+  for( int b = 0; b < BUTTON_COUNT; b++) {
+    buttons[b].button.update();
+  }
 
-  //  update our rotary buttons bounce
-  for( int i = 0; i < ROTARY_COUNT; i++) {
-    Controls[i].button.update();
+  for( int k = 0; k < ROTARY_COUNT; k++) {
+    rotary[k].button.update();
   }
 
   //////////////////////////////////
   //  TESTING
   //////////////////////////////////
 
-
-  //  buttons test
-  if (button1.fallingEdge()) {
-    Serial.println("button1: pushed");
-  }
-  if (button2.fallingEdge()) {
-    Serial.println("button2: pushed");
+  for( int b = 0; b < BUTTON_COUNT; b++) {
+    if (buttons[b].button.fallingEdge()) {
+      Serial.print("button ");
+      Serial.print(b);
+      Serial.println(": pushed");
+      buttons[b].pressed = true;
+    }
   }
 
   //  update our rotary buttons bounce
   for( int i = 0; i < ROTARY_COUNT; i++) {
 
     //  rotary position
-    Controls[i].newPosition = Controls[i].encoder.read();
-    if (Controls[i].newPosition != Controls[i].currentPosition) {
+    rotary[i].newPosition = rotary[i].encoder.read();
+    if (rotary[i].newPosition != rotary[i].currentPosition) {
       Serial.print("rotary ");
       Serial.print(i);
       Serial.print(": ");
-      Serial.println(Controls[i].newPosition);
-      Controls[i].currentPosition = Controls[i].newPosition;
+      Serial.println(rotary[i].newPosition);
+      rotary[i].currentPosition = rotary[i].newPosition;
     }
 
     //  button position
-    if (Controls[i].button.fallingEdge()) {
+    if (rotary[i].button.fallingEdge()) {
       Serial.print("rotaryButton ");
       Serial.print(i);
       Serial.println(": pushed ");

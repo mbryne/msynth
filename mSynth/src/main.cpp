@@ -3,13 +3,11 @@
 
 #include "hardware.h"
 #include "synth.h"
-#include "hardware.h"
 #include "parameters.h"
 #include "modes.h"
 
 Synth * synth = Synth::getInstance();
 Hardware * hardware = Hardware::getInstance();
-LiquidCrystal_I2C * display;
 
 //////////////////////////////////
 //  INTERFACE VARIABLES
@@ -19,13 +17,8 @@ LiquidCrystal_I2C * display;
 bool debug = true;
 
 //  mode setup
-const int totalModes = 9;
+const int totalModes = 10;
 int currentMode = 0;
-
-//  buttons setup
-bool leftButtonPressed = false;
-bool rightButtonPressed = false;
-bool rotaryButtonPressed = false;
 
 //  controls
 elapsedMillis controlTimer;
@@ -33,11 +26,6 @@ int updatedControl = -1;
 int currentControl = -1;
 int controlUpdateable = 0; // -1 = under, 0 = ok, 1 = over
 int lastControlValue = -1;
-
-//  rotary
-long newPosition;
-long rotaryPosition  = -999;
-
 
 //////////////////////////////////
 //  DISPLAY DEFINITION
@@ -47,7 +35,7 @@ long rotaryPosition  = -999;
 enum DisplayMode {
   IDLE,           //  no display update
   CHANGE_MODE,    //  writes out the new mode name and puts a character on bottom
-  UPDATE_CONTROL  //  updates the control and returns to default after 2 seconds
+  UPDATE_CONTROL  //  updates the control and returns to default after 1 seconds
 };
 
 //  display setup
@@ -120,17 +108,17 @@ void setDisplayMode(int newMode) {
 
 void displayCurrentMode() {
 
-  display->clear();
+  hardware->display->clear();
 
-  display->setCursor(0, 0);
-  display->print(mode().label);
+  hardware->display->setCursor(0, 0);
+  hardware->display->print(mode().label);
 
   for( int i = 0; i < totalModes; i++) {
-      display->setCursor(i, 1);
+      hardware->display->setCursor(i, 1);
       if (currentMode == i) {
-        display->write(FILLED_CHAR);
+        hardware->display->write(FILLED_CHAR);
       } else {
-        display->write('-');
+        hardware->display->write('-');
       }
   }
 
@@ -140,6 +128,8 @@ void displayControlUpdate() {
 
     ModeControl control = getControl(currentControl);
 
+    Serial.print((int)control.parameter);
+    Serial.print(": ");
     Serial.println(control.label);
 
     //  don't register no parameter updates
@@ -147,10 +137,10 @@ void displayControlUpdate() {
         return;
     }
 
-    display->clear();
+    hardware->display->clear();
 
-    display->setCursor(0, 0);
-    display->print(control.label);
+    hardware->display->setCursor(0, 0);
+    hardware->display->print(control.label);
 
     Serial.println(control.label);
 
@@ -167,36 +157,37 @@ void startControlTimer() {
 
 void updateInterface() {
 
-    if (hardware->button1Pressed) {
+    if (hardware->buttons[0].pressed) {
       previousMode();
       setDisplayMode( DisplayMode::CHANGE_MODE );
-      hardware->button1Pressed = false;
+      hardware->buttons[0].pressed = false;
     }
 
-    if (hardware->button2Pressed) {
+    if (hardware->buttons[1].pressed) {
       nextMode();
       setDisplayMode( DisplayMode::CHANGE_MODE );
-      hardware->button2Pressed = false;
+      hardware->buttons[1].pressed = false;
     }
 
-    for( int k = 0; k < HARDWARE_KNOBS; k++) {
-      if (hardware->knobUpdated[k]) {
-        setValue( k + 1, hardware->knobValues[k] ); // first control is knob so k+1
-        hardware->knobUpdated[k] = false;
-        if (currentDisplay != DisplayMode::UPDATE_CONTROL ) {
-          updatedControl = k + 1;
+    for( int k = 0; k < ROTARY_COUNT; k++) {
+
+      if (hardware->rotary[k].updated) {
+        setValue( k, hardware->rotary[k].currentPosition );
+        hardware->rotary[k].updated = false;
+        if (currentDisplay == DisplayMode::IDLE ) {
+          updatedControl = k;
           setDisplayMode( DisplayMode::UPDATE_CONTROL );
         }
       }
-    }
 
-    if (hardware->rotaryUpdated) {
-      setValue( 0, hardware->rotaryPosition );
-      hardware->rotaryUpdated = false;
-      if (currentDisplay != DisplayMode::UPDATE_CONTROL ) {
-        updatedControl = 0;
-        setDisplayMode( DisplayMode::UPDATE_CONTROL );
+      if (hardware->rotary[k].pressed) {
+        hardware->rotary[k].pressed = false;
+        if (currentDisplay == DisplayMode::IDLE ) {
+          updatedControl = k;
+          setDisplayMode( DisplayMode::UPDATE_CONTROL );
+        }
       }
+
     }
 
 }
@@ -215,16 +206,17 @@ void updateDisplay() {
 
         break;
       case DisplayMode::CHANGE_MODE:
+        //
+        // //  update our display
+        // if (refreshDisplay) {
+        //   displayCurrentMode();
+        //   refreshDisplay = false;
+        // }
 
-        //  update our display
-        if (refreshDisplay) {
-          displayCurrentMode();
-          refreshDisplay = false;
-        }
-
-        if (displayTimer > 5000) {
+        // if (displayTimer > 1000) {
+          refreshDisplay = true;
           setDisplayMode(DisplayMode::IDLE);
-        }
+        // }
 
         break;
       case DisplayMode::UPDATE_CONTROL:
@@ -240,11 +232,11 @@ void updateDisplay() {
         }
 
         //  reset the timer if we are on the same control
-        if (currentControl == updatedControl) {
+        if (currentControl == updatedControl && controlTimer > 100) {
           Serial.print("Reset controlTimer: ");
           Serial.println(currentControl);
           lastControlValue = getValue(updatedControl);
-          refreshDisplay = true;
+          // refreshDisplay = true;
           controlTimer = 0;
         }
 
@@ -276,8 +268,6 @@ void setup() {
   hardware->setup();
   synth->setup();
 
-  display = hardware->display;
-
 }
 
 //////////////////////////////////
@@ -293,22 +283,7 @@ void loop() {
   updateDisplay();
 
   //////////////////////////////////
-  //  TESTING
+  //  AUDIO
   //////////////////////////////////
-
-  //////////////////////////////////
-  //  UPDATE AUDIO
-  //////////////////////////////////
-
-  //  pots test
-  // if(pot4.hasChanged()) {
-  //     mixer1.gain(0, ((float)pot4.getValue() / 1023));
-  // }
-  // if(pot5.hasChanged()) {
-  //     mixer1.gain(1, ((float)pot5.getValue() / 1023));
-  // }
-  // if(pot6.hasChanged()) {
-  //     mixer1.gain(2, ((float)pot6.getValue() / 1023));
-  // }
 
 }

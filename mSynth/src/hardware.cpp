@@ -13,7 +13,13 @@ void Hardware::setup(void) {
   pinMode(BUTTON_2, INPUT_PULLUP);
 
   //  rotary setup
-  pinMode(ROTARY_BUTTON_1, INPUT_PULLUP);
+  pinMode(ROTARY_0_BUTTON, INPUT_PULLUP);
+  pinMode(ROTARY_1_BUTTON, INPUT_PULLUP);
+  pinMode(ROTARY_2_BUTTON, INPUT_PULLUP);
+  pinMode(ROTARY_3_BUTTON, INPUT_PULLUP);
+  pinMode(ROTARY_4_BUTTON, INPUT_PULLUP);
+  pinMode(ROTARY_5_BUTTON, INPUT_PULLUP);
+  pinMode(ROTARY_6_BUTTON, INPUT_PULLUP);
 
   //  display setup
   display = new LiquidCrystal_I2C(0x27,16,2);
@@ -29,50 +35,48 @@ void Hardware::update(void) {
 
 void Hardware::poll(void) {
 
-    button1.update();
-    button2.update();
-    rotaryButton.update();
+    for( int b = 0; b < BUTTON_COUNT; b++) {
+      buttons[b].button.update();
+    }
 
-    for( int i = 0; i < HARDWARE_KNOBS; i++) {
-      knobs[i].update();
+    for( int k = 0; k < ROTARY_COUNT; k++) {
+      rotary[k].button.update();
     }
 
 }
 
 void Hardware::state(void) {
 
-  if (button1.fallingEdge()) {
-    Serial.println("button1: pushed");
-    button1Pressed = true;
-  }
-
-  if (button2.fallingEdge()) {
-    Serial.println("button2: pushed");
-    button2Pressed = true;
-  }
-
-  for( int i = 0; i < HARDWARE_KNOBS; i++) {
-    if (knobs[i].hasChanged()) {
-      knobValues[i] = knobs[i].getValue();
-      knobUpdated[i] = true;
-      Serial.print("pot ");
-      Serial.print(i + 1);
-      Serial.print(": ");
-      Serial.println(knobValues[i]);
+  for( int b = 0; b < BUTTON_COUNT; b++) {
+    if (buttons[b].button.fallingEdge()) {
+      Serial.print("button");
+      Serial.print(b);
+      Serial.println(": pushed");
+      buttons[b].pressed = true;
     }
   }
 
-  newPosition = rotary.read();
-  if (newPosition != rotaryPosition) {
-    Serial.print("rotary: ");
-    Serial.println(newPosition);
-    rotaryPosition = newPosition;
-    rotaryUpdated = true;
-  }
+  for( int i = 0; i < ROTARY_COUNT; i++) {
 
-  if (rotaryButton.fallingEdge()) {
-    Serial.println("rotaryButton: pushed");
-    rotaryButtonPressed = true;
+      //  rotary position
+      rotary[i].newPosition = rotary[i].encoder.read();
+      if (rotary[i].newPosition != rotary[i].currentPosition) {
+        Serial.print("rotary ");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.println(rotary[i].newPosition);
+        rotary[i].currentPosition = rotary[i].newPosition;
+        rotary[i].updated = true;
+      }
+
+      //  button position
+      if (rotary[i].button.fallingEdge()) {
+        Serial.print("rotaryButton ");
+        Serial.print(i);
+        Serial.println(": pushed ");
+        rotary[i].pressed = true;
+      }
+
   }
 
 }
