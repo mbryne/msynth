@@ -6,10 +6,10 @@ struct Mode InterfaceModes[10] = {
       "MIXER",
       {
         { Parameter::MASTER_VOLUME, "Master Volume" },    // 0
-        { Parameter::MASTER_VOLUME, "" },                 // 1
+        { Parameter::NONE, "" },                          // 1
         { Parameter::MASTER_VOLUME, "Oscillator 1" },     // 2
         { Parameter::MASTER_VOLUME, "Oscillator 2" },     // 3
-        { Parameter::MASTER_VOLUME, "" },                 // 4
+        { Parameter::NONE, "" },                          // 4
         { Parameter::MASTER_VOLUME, "Sample" },           // 5
         { Parameter::MASTER_VOLUME, "Noise" }             // 6
       }

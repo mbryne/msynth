@@ -12,19 +12,23 @@ void Hardware::setup(void) {
   pinMode(BUTTON_1, INPUT_PULLUP);
   pinMode(BUTTON_2, INPUT_PULLUP);
 
-  //  rotary setup
-  pinMode(ROTARY_0_BUTTON, INPUT_PULLUP);
-  pinMode(ROTARY_1_BUTTON, INPUT_PULLUP);
-  pinMode(ROTARY_2_BUTTON, INPUT_PULLUP);
-  pinMode(ROTARY_3_BUTTON, INPUT_PULLUP);
-  pinMode(ROTARY_4_BUTTON, INPUT_PULLUP);
-  pinMode(ROTARY_5_BUTTON, INPUT_PULLUP);
-  pinMode(ROTARY_6_BUTTON, INPUT_PULLUP);
+  //  ENCODER setup
+  pinMode(ENCODER_0_BUTTON, INPUT_PULLUP);
+  pinMode(ENCODER_1_BUTTON, INPUT_PULLUP);
+  pinMode(ENCODER_2_BUTTON, INPUT_PULLUP);
+  pinMode(ENCODER_3_BUTTON, INPUT_PULLUP);
+  pinMode(ENCODER_4_BUTTON, INPUT_PULLUP);
+  pinMode(ENCODER_5_BUTTON, INPUT_PULLUP);
+  pinMode(ENCODER_6_BUTTON, INPUT_PULLUP);
 
   //  display setup
   display = new LiquidCrystal_I2C(0x27,16,2);
   display->init();
   display->backlight();
+
+  //  graph setup
+  graph = new LcdBarGraphX(display, 16, 0, 1);
+  graph->begin();
 
 }
 
@@ -39,10 +43,16 @@ void Hardware::poll(void) {
       buttons[b].button.update();
     }
 
-    for( int k = 0; k < ROTARY_COUNT; k++) {
-      rotary[k].button.update();
+    for( int k = 0; k < ENCODER_COUNT; k++) {
+      encoders[k].button.update();
     }
 
+}
+
+void Hardware::setEncoder(int i, int value) {
+  encoders[i].newPosition = value;
+  encoders[i].currentPosition = value;
+  encoders[i].encoder.write(value);
 }
 
 void Hardware::state(void) {
@@ -56,25 +66,36 @@ void Hardware::state(void) {
     }
   }
 
-  for( int i = 0; i < ROTARY_COUNT; i++) {
+  for( int i = 0; i < ENCODER_COUNT; i++) {
 
-      //  rotary position
-      rotary[i].newPosition = rotary[i].encoder.read();
-      if (rotary[i].newPosition != rotary[i].currentPosition) {
-        Serial.print("rotary ");
+      //  ENCODER position
+      encoders[i].newPosition = encoders[i].encoder.read();
+      if (encoders[i].newPosition != encoders[i].currentPosition) {
+
+        //  constrain value
+        if (encoders[i].newPosition > 127 ) {
+          encoders[i].encoder.write(127);
+          encoders[i].newPosition = 127;
+        }
+        if (encoders[i].newPosition < 0 ) {
+          encoders[i].encoder.write(0);
+          encoders[i].newPosition = 0;
+        }
+
+        Serial.print("encoder ");
         Serial.print(i);
         Serial.print(": ");
-        Serial.println(rotary[i].newPosition);
-        rotary[i].currentPosition = rotary[i].newPosition;
-        rotary[i].updated = true;
+        Serial.println(encoders[i].newPosition);
+        encoders[i].currentPosition = encoders[i].newPosition;
+        encoders[i].updated = true;
       }
 
       //  button position
-      if (rotary[i].button.fallingEdge()) {
-        Serial.print("rotaryButton ");
+      if (encoders[i].button.fallingEdge()) {
+        Serial.print("encoderButton ");
         Serial.print(i);
         Serial.println(": pushed ");
-        rotary[i].pressed = true;
+        encoders[i].pressed = true;
       }
 
   }

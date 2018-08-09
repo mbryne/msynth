@@ -9,50 +9,51 @@
 #include <Encoder.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <LcdBarGraphX.h>
 
 //////////////////////////////////
 //  SETTINGS
 //////////////////////////////////
 
 #define BUTTON_COUNT 2
-#define ROTARY_COUNT 7
+#define ENCODER_COUNT 7
 
 //  buttons
 const int BUTTON_1 = 33;
 const int BUTTON_2 = 32;
 
 //  rotaries
-const int ROTARY_0_BUTTON = 2;
-const int ROTARY_0_DATA_1 = 24;
-const int ROTARY_0_DATA_2 = 25;
-const int ROTARY_1_BUTTON = 5;
-const int ROTARY_1_DATA_1 = 31;
-const int ROTARY_1_DATA_2 = 30;
-const int ROTARY_2_BUTTON = 4;
-const int ROTARY_2_DATA_1 = 29;
-const int ROTARY_2_DATA_2 = 28;
-const int ROTARY_3_BUTTON = 3;
-const int ROTARY_3_DATA_1 = 27;
-const int ROTARY_3_DATA_2 = 26;
-const int ROTARY_4_BUTTON = 8;
-const int ROTARY_4_DATA_1 = 39;
-const int ROTARY_4_DATA_2 = 38;
-const int ROTARY_5_BUTTON = 7;
-const int ROTARY_5_DATA_1 = 37;
-const int ROTARY_5_DATA_2 = 36;
-const int ROTARY_6_BUTTON = 6;
-const int ROTARY_6_DATA_1 = 35;
-const int ROTARY_6_DATA_2 = 34;
+const int ENCODER_0_BUTTON = 2;
+const int ENCODER_0_DATA_1 = 24;
+const int ENCODER_0_DATA_2 = 25;
+const int ENCODER_1_BUTTON = 5;
+const int ENCODER_1_DATA_1 = 31;
+const int ENCODER_1_DATA_2 = 30;
+const int ENCODER_2_BUTTON = 4;
+const int ENCODER_2_DATA_1 = 29;
+const int ENCODER_2_DATA_2 = 28;
+const int ENCODER_3_BUTTON = 3;
+const int ENCODER_3_DATA_1 = 27;
+const int ENCODER_3_DATA_2 = 26;
+const int ENCODER_4_BUTTON = 8;
+const int ENCODER_4_DATA_1 = 39;
+const int ENCODER_4_DATA_2 = 38;
+const int ENCODER_5_BUTTON = 7;
+const int ENCODER_5_DATA_1 = 37;
+const int ENCODER_5_DATA_2 = 36;
+const int ENCODER_6_BUTTON = 6;
+const int ENCODER_6_DATA_1 = 35;
+const int ENCODER_6_DATA_2 = 34;
 
 //////////////////////////////////
 //  STRUCTS
 //////////////////////////////////
 
-struct RotaryControl {
+struct EncoderControl {
   Encoder encoder;
   Bounce button;
 	int newPosition = 0;
-  int currentPosition = -999;
+  int currentPosition = 0;
   bool pressed = false;
   bool updated = false;
 };
@@ -79,16 +80,18 @@ class Hardware {
       { Bounce(BUTTON_1, 50)  },
       { Bounce(BUTTON_2, 50) }
     };
-    struct RotaryControl rotary[ROTARY_COUNT] = {
-      { Encoder(ROTARY_0_DATA_1, ROTARY_0_DATA_2), Bounce(ROTARY_0_BUTTON, 50) },
-      { Encoder(ROTARY_1_DATA_1, ROTARY_1_DATA_2), Bounce(ROTARY_1_BUTTON, 50) },
-      { Encoder(ROTARY_2_DATA_1, ROTARY_2_DATA_2), Bounce(ROTARY_2_BUTTON, 50) },
-      { Encoder(ROTARY_3_DATA_1, ROTARY_3_DATA_2), Bounce(ROTARY_3_BUTTON, 50) },
-      { Encoder(ROTARY_4_DATA_1, ROTARY_4_DATA_2), Bounce(ROTARY_4_BUTTON, 50) },
-      { Encoder(ROTARY_5_DATA_1, ROTARY_5_DATA_2), Bounce(ROTARY_5_BUTTON, 50) },
-      { Encoder(ROTARY_6_DATA_1, ROTARY_6_DATA_2), Bounce(ROTARY_6_BUTTON, 50) }
+    struct EncoderControl encoders[ENCODER_COUNT] = {
+      { Encoder(ENCODER_0_DATA_1, ENCODER_0_DATA_2), Bounce(ENCODER_0_BUTTON, 50) },
+      { Encoder(ENCODER_1_DATA_1, ENCODER_1_DATA_2), Bounce(ENCODER_1_BUTTON, 50) },
+      { Encoder(ENCODER_2_DATA_1, ENCODER_2_DATA_2), Bounce(ENCODER_2_BUTTON, 50) },
+      { Encoder(ENCODER_3_DATA_1, ENCODER_3_DATA_2), Bounce(ENCODER_3_BUTTON, 50) },
+      { Encoder(ENCODER_4_DATA_1, ENCODER_4_DATA_2), Bounce(ENCODER_4_BUTTON, 50) },
+      { Encoder(ENCODER_5_DATA_1, ENCODER_5_DATA_2), Bounce(ENCODER_5_BUTTON, 50) },
+      { Encoder(ENCODER_6_DATA_1, ENCODER_6_DATA_2), Bounce(ENCODER_6_BUTTON, 50) }
     };
+    void setEncoder( int index, int value );
     LiquidCrystal_I2C * display;
+    LcdBarGraphX * graph;
   private:
   	Hardware();
   	Hardware(Hardware const&); // copy disabled
