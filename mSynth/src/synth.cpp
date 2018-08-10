@@ -111,6 +111,9 @@ int Synth::getValue(Parameter parameter) {
     case Parameter::OSC_1_WAVEFORM:
       return oscillator1.type;
       break;
+    case Parameter::OSC_2_WAVEFORM:
+      return oscillator2.type;
+      break;
     case Parameter::NONE:
       return -1;
       break;
@@ -123,22 +126,22 @@ int Synth::getValue(Parameter parameter) {
 
 String Synth::setValue(Parameter parameter, uint8_t value) {
 
+  int roundedValue;
   switch (parameter) {
     case Parameter::MASTER_VOLUME:
       masterVolume = value/127.;
       break;
     case Parameter::OSC_1_WAVEFORM:
-      Serial.print("Original Value: ");
-      Serial.println(value);
-      value = map(value, 0, 127, 0, 5 );
-      if (value < 0 || value > 6) {
-        value = 0;
-      }
-      Serial.print("Rounded Value: ");
-      Serial.println(value);
+      roundedValue = map(value, 0, 127, 0, 5 );
       oscillator1.type = value;
-      oscillator1.waveform->begin(waveforms[oscillator1.type]);
-      return typeName(value);
+      oscillator1.waveform->begin(waveforms[roundedValue]);
+      return typeName(roundedValue);
+      break;
+    case Parameter::OSC_2_WAVEFORM:
+      roundedValue = map(value, 0, 127, 0, 5 );
+      oscillator2.type = value;
+      oscillator2.waveform->begin(waveforms[roundedValue]);
+      return typeName(roundedValue);
       break;
     case Parameter::NONE:
       break;
