@@ -17,7 +17,9 @@ struct Oscillator {
   AudioFilterStateVariable* filter;
   AudioMixer4*              mixer;
   AudioEffectEnvelope*      envelope;
+  uint8_t type = WAVEFORM_SAWTOOTH;
   float amplitude = 0.75;
+  float frequency = 123;
   float pulseWidth = 0.15;
   int8_t  note = -1;
   uint8_t velocity = 0;
@@ -33,10 +35,11 @@ class Synth {
     void setup();
     void update();
     int getValue( Parameter parameter );
-    void setValue( Parameter parameter, uint8_t value );
+    String setValue( Parameter parameter, uint8_t value );
     float noteToFrequency(float note);
     void resetAll();
     void dump();
+    String typeName(uint8_t type);
     //  synth variables
     Oscillator oscillator1;
     Oscillator oscillator2;

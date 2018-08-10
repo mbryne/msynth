@@ -3,8 +3,24 @@
 
 
 enum struct Parameter {
-    MASTER_VOLUME,
-    NONE
+
+  //  MIXER
+  MASTER_VOLUME,
+
+  //  OSC 1
+  OSC_1_WAVEFORM,
+  OSC_1_FREQUENCY,
+  OSC_1_PULSEWIDTH,
+
+  //  OSC 1
+
+  OSC_2_WAVEFORM,
+  OSC_2_FREQUENCY,
+  OSC_2_PULSEWIDTH,
+
+  //  OTHER
+
+  NONE
 };
 
 #endif

@@ -24,7 +24,8 @@ int currentMode = 0;
 elapsedMillis controlTimer;
 int updatedControl = -1;
 int currentControl = -1;
-bool refreshControlLabel = true;
+String returnValue = "";
+bool echoedReturn = false;
 
 //////////////////////////////////
 //  DISPLAY DEFINITION
@@ -60,12 +61,16 @@ struct ModeControl getControl(int control) {
   return mode().controls[control];
 }
 
-void setValue( int index, int value ) {
+void setValue( int index, uint8_t value ) {
     ModeControl control = getControl(index);
-    synth->setValue( (Parameter) control.parameter, value );
+    String newValue = synth->setValue( (Parameter) control.parameter, value );
+    if (newValue != "" && newValue != returnValue && index == currentControl) {
+      returnValue = newValue;
+      echoedReturn = false;
+    }
 }
 
-int getValue( int index ) {
+uint8_t getValue( int index ) {
     ModeControl control = getControl(index);
     return synth->getValue( (Parameter) control.parameter);
 }
@@ -75,12 +80,16 @@ void updateControls() {
   Serial.println(mode().label);
   for( int k = 0; k < ENCODER_COUNT; k++) {
     ModeControl control = getControl(k);
-    int newValue = getValue(k);
+    uint8_t newValue = getValue(k);
     hardware->setEncoder(k, newValue);
     Serial.print("Set Control ");
     Serial.print(control.label);
     Serial.print(": ");
     Serial.println(newValue);
+    Serial.print("min: ");
+    Serial.print(control.min);
+    Serial.print(", max: ");
+    Serial.println(control.max);
   }
 }
 
@@ -154,11 +163,21 @@ void displayControlUpdate() {
 
     hardware->display->setCursor(0, 0);
     hardware->display->print(control.label);
-
+    hardware->display->setCursor(0, 1);
+    hardware->display->print("                ");
 }
 
 void displayControlValue() {
-   hardware->graph->drawValue( getValue(currentControl), 127);
+  if (!echoedReturn && returnValue != "") {
+      hardware->display->setCursor(0, 1);
+      hardware->display->print("                ");
+      // delay(10);
+      hardware->display->setCursor(0, 1);
+      hardware->display->print(returnValue);
+      echoedReturn = true;
+  } else if (returnValue == "") {
+      hardware->graph->drawValue( getValue(currentControl), 127);
+  }
 }
 
 //////////////////////////////////
@@ -254,9 +273,21 @@ void updateState() {
           // setScreen(Screen::CONTROL, false);
         }
 
+        //  reset the display and update if it doesn't match our last control
+        if (updatedControl != -1 && currentControl != updatedControl && controlTimer > 1000) {
+            Serial.print("Change controlTimer: ");
+            Serial.println(updatedControl);
+            controlTimer = 0;
+            currentControl = updatedControl;
+            updatedControl = -1;
+            returnValue = "";
+            setScreen(Screen::CONTROL);
+        }
+
         if (displayTimer > 3000) {
           currentControl = -1;
           updatedControl = -1;
+          returnValue = "";
           setScreen(Screen::IDLE);
         }
 

@@ -52,6 +52,8 @@ const int ENCODER_6_DATA_2 = 34;
 struct EncoderControl {
   Encoder encoder;
   Bounce button;
+  int min = 0;
+  int max = 127;
 	int newPosition = 0;
   int currentPosition = 0;
   bool pressed = false;
@@ -89,7 +91,7 @@ class Hardware {
       { Encoder(ENCODER_5_DATA_1, ENCODER_5_DATA_2), Bounce(ENCODER_5_BUTTON, 50) },
       { Encoder(ENCODER_6_DATA_1, ENCODER_6_DATA_2), Bounce(ENCODER_6_BUTTON, 50) }
     };
-    void setEncoder( int index, int value );
+    void setEncoder( int index, int value, int min = 0, int max = 127 );
     LiquidCrystal_I2C * display;
     LcdBarGraphX * graph;
   private:

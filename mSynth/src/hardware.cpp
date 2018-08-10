@@ -49,10 +49,12 @@ void Hardware::poll(void) {
 
 }
 
-void Hardware::setEncoder(int i, int value) {
+void Hardware::setEncoder(int i, int value, int min, int max) {
   encoders[i].newPosition = value;
   encoders[i].currentPosition = value;
   encoders[i].encoder.write(value);
+  encoders[i].min = min;
+  encoders[i].max = max;
 }
 
 void Hardware::state(void) {
@@ -73,19 +75,23 @@ void Hardware::state(void) {
       if (encoders[i].newPosition != encoders[i].currentPosition) {
 
         //  constrain value
-        if (encoders[i].newPosition > 127 ) {
-          encoders[i].encoder.write(127);
-          encoders[i].newPosition = 127;
+        if (encoders[i].newPosition > encoders[i].max ) {
+          encoders[i].encoder.write(encoders[i].max);
+          encoders[i].newPosition = encoders[i].max;
         }
-        if (encoders[i].newPosition < 0 ) {
-          encoders[i].encoder.write(0);
-          encoders[i].newPosition = 0;
+        if (encoders[i].newPosition < encoders[i].min ) {
+          encoders[i].encoder.write(encoders[i].min);
+          encoders[i].newPosition = encoders[i].min;
         }
 
         Serial.print("encoder ");
         Serial.print(i);
         Serial.print(": ");
         Serial.println(encoders[i].newPosition);
+        Serial.print("min: ");
+        Serial.print(encoders[i].min);
+        Serial.print(", max: ");
+        Serial.println(encoders[i].max);
         encoders[i].currentPosition = encoders[i].newPosition;
         encoders[i].updated = true;
       }

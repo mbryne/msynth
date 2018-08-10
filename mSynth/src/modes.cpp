@@ -7,8 +7,8 @@ struct Mode InterfaceModes[10] = {
       {
         { Parameter::MASTER_VOLUME, "Master Volume" },    // 0
         { Parameter::NONE, "" },                          // 1
-        { Parameter::MASTER_VOLUME, "Oscillator 1" },     // 2
-        { Parameter::MASTER_VOLUME, "Oscillator 2" },     // 3
+        { Parameter::OSC_1_WAVEFORM, "Oscillator 1" },     // 2
+        { Parameter::OSC_2_WAVEFORM, "Oscillator 2" },     // 3
         { Parameter::NONE, "" },                          // 4
         { Parameter::MASTER_VOLUME, "Sample" },           // 5
         { Parameter::MASTER_VOLUME, "Noise" }             // 6
@@ -29,7 +29,7 @@ struct Mode InterfaceModes[10] = {
     {
       "OSCILLATOR 1",
       {
-        { Parameter::NONE, "Type" },
+        { Parameter::OSC_1_WAVEFORM, "Type", 1, 6 },
         { Parameter::NONE, "Shape" },
         { Parameter::NONE, "Filter" },
         { Parameter::NONE, "Attack" },
@@ -41,7 +41,7 @@ struct Mode InterfaceModes[10] = {
     {
       "OSCILLATOR 2",
       {
-        { Parameter::NONE, "Type" },
+        { Parameter::OSC_2_WAVEFORM, "Type", 1, 6 },
         { Parameter::NONE, "Shape" },
         { Parameter::NONE, "Filter" },
         { Parameter::NONE, "Attack" },
