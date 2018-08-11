@@ -179,7 +179,11 @@ float Synth::noteToFrequency(float note) {
   return SYNTH_TUNING*pow(2,(note - 69)/12.+pitchBend);
 }
 
-void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+void Synth::OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+
+    oscillator1.waveform->frequency(noteToFrequency(note));
+    oscillator1.waveform->amplitude(velocity*GAIN_OSC);
+    // oscillator1.waveform->velocity = velocity;
 
     // float v = velocityOn ? velocity/127. : 1;
     // if (osc.note!=note) {
@@ -196,12 +200,10 @@ void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
 
 }
 
-inline void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
-  // if (envOn) osc.env->noteOff();
-  // else       osc.wf->amplitude(0);
-  // notesDel(notesOn,osc.note);
-  // osc.note = -1;
-  // osc.velocity = 0;
+void Synth::OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+  oscillator1.waveform->amplitude(0);
+  // oscillator1.waveform->note = -1;
+  // oscillator1.waveform->velocity = 0;
 }
 
 inline void allOff() {

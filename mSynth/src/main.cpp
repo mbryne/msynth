@@ -330,136 +330,24 @@ void updateDisplay() {
   }
 
 }
-//
-// void updateInterface2() {
-//
-//   if (currentDisplay == DisplayMode::BOOT ) {
-//     return;
-//   }
-//
-//   if (hardware->buttons[0].pressed) {
-//     refreshDisplay = true;
-//     previousMode();
-//     setDisplayMode( DisplayMode::CHANGE_MODE );
-//     hardware->buttons[0].pressed = false;
-//   }
-//
-//   if (hardware->buttons[1].pressed) {
-//     refreshDisplay = true;
-//     nextMode();
-//     setDisplayMode( DisplayMode::CHANGE_MODE );
-//     hardware->buttons[1].pressed = false;
-//   }
-//
-//   for( int k = 0; k < ENCODER_COUNT; k++) {
-//
-//     if (hardware->encoders[k].updated) {
-//       hardware->encoders[k].updated = false;
-//
-//       //  don't update our value when we are changing modes
-//       if (currentDisplay != DisplayMode::CHANGE_MODE ) {
-//         setValue( k, hardware->encoders[k].currentPosition );
-//         updatedControl = k;
-//         setDisplayMode( DisplayMode::UPDATE_CONTROL );
-//       }
-//
-//     }
-//
-//     if (hardware->encoders[k].pressed) {
-//       hardware->encoders[k].pressed = false;
-//       if (currentDisplay != DisplayMode::CHANGE_MODE ) {
-//         updatedControl = k;
-//         setDisplayMode( DisplayMode::UPDATE_CONTROL );
-//         if (k == 0) {
-//           synth->dump();
-//         }
-//       }
-//     }
-//
-//   }
-//
-// }
-//
-// void updateDisplay2() {
-//
-//     switch (currentDisplay)
-//     {
-//       case DisplayMode::BOOT:
-//
-//         //  update our display
-//         if (refreshDisplay) {
-//           displaySplashScreen();
-//           refreshDisplay = false;
-//         }
-//
-//         if (displayTimer > 2000) {
-//           refreshDisplay = true;
-//           setDisplayMode(DisplayMode::IDLE);
-//         }
-//
-//       break;
-//       case DisplayMode::IDLE:
-//
-//           //  update our display
-//           if (refreshDisplay) {
-//             displayCurrentMode();
-//             refreshDisplay = false;
-//           }
-//
-//           break;
-//       case DisplayMode::CHANGE_MODE:
-//
-//         // //  update our display
-//         if (refreshDisplay) {
-//           displayCurrentMode();
-//           refreshDisplay = false;
-//         }
-//
-//         if (displayTimer > 1000) {
-//           refreshDisplay = true;
-//           setDisplayMode(DisplayMode::IDLE);
-//         }
-//
-//         break;
-//       case DisplayMode::UPDATE_CONTROL:
-//
-//         //  only start updating control display if we have no control
-//         if (currentControl == -1) {
-//           Serial.print("Start controlTimer: ");
-//           Serial.println(updatedControl);
-//           lastControlValue = getValue(updatedControl);
-//           controlTimer = 0;
-//           currentControl = updatedControl;
-//           updatedControl = -1;
-//           refreshDisplay = true;
-//         }
-//
-//         //  reset the timer if we are on the same control
-//         if (currentControl == updatedControl && controlTimer > 100) {
-//           Serial.print("Reset controlTimer: ");
-//           Serial.println(currentControl);
-//           lastControlValue = getValue(updatedControl);
-//           refreshDisplay = true;
-//           controlTimer = 0;
-//           updatedControl = -1;
-//         }
-//
-//         if (refreshDisplay) {
-//           displayControlUpdate();
-//           refreshDisplay = false;
-//         }
-//
-//         if (displayTimer > 1000) {
-//           currentControl = -1;
-//           updatedControl = -1;
-//           refreshDisplay = true;
-//           setDisplayMode(DisplayMode::IDLE);
-//         }
-//
-//         break;
-//     }
-//
-// }
+
+//////////////////////////////////
+//  SETUP FUNCTION
+//////////////////////////////////
+
+void noteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+  synth->OnNoteOn(channel, note, velocity);
+  hardware->display->clear();
+  hardware->display->setCursor(0, 0);
+  hardware->display->print(note);
+  hardware->display->setCursor(0, 1);
+  hardware->display->print(velocity);
+}
+
+void noteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
+  synth->OnNoteOff(channel, note, velocity);
+  hardware->display->clear();
+}
 
 //////////////////////////////////
 //  SETUP FUNCTION
@@ -474,9 +362,8 @@ void setup() {
   // midi->setup();
   synth->setup();
 
-
-  // usbMIDI.setHandleNoteOff(OnNoteOff);
-  // usbMIDI.setHandleNoteOn(OnNoteOn);
+  usbMIDI.setHandleNoteOff(noteOn);
+  usbMIDI.setHandleNoteOn(noteOff);
 //   usbMIDI.setHandleVelocityChange(OnAfterTouchPoly);
 //   usbMIDI.setHandleControlChange(OnControlChange);
 // //  usbMIDI.setHandlePitchChange(OnPitchChangeUSB);
@@ -497,6 +384,8 @@ void loop() {
   // interface->update();
   // midi->update();
   synth->update();
+
+  usbMIDI.read();         // All Channels
 
   updateInterface();
   updateState();

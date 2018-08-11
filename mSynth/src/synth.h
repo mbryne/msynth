@@ -39,6 +39,8 @@ class Synth {
     float noteToFrequency(float note);
     void resetAll();
     void dump();
+    void OnNoteOn(uint8_t channel, uint8_t note, uint8_t velocity);
+    void OnNoteOff(uint8_t channel, uint8_t note, uint8_t velocity);
     String typeName(uint8_t type);
     //  synth variables
     Oscillator oscillator1;
