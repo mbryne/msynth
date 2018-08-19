@@ -281,6 +281,15 @@ void Synth::dump() {
   Serial.print("Master Volume:        ");
   Serial.println(masterVolume);
   Serial.println(getValue(Parameter::MASTER_VOLUME));
+  for (auto item : controls) {
+      Serial.print((int)item.first);
+      Serial.print(" - ");
+      Serial.println(item.second.label);
+      Serial.print("- min: ");
+      Serial.println(item.second.min);
+      Serial.print("- max: ");
+      Serial.println(item.second.max);
+  }
   Serial.println("===================================");
   Serial.println();
 }
