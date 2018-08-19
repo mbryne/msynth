@@ -2,7 +2,7 @@
 #define MSYNTH_H
 
 #include "Arduino.h"
-#include "parameters.h"
+#include "controls.h"
 
 //  audio libraries
 #include <Audio.h>

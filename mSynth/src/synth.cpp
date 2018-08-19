@@ -89,6 +89,8 @@ void Synth::setup() {
   AudioMemory(50);
   // usbMIDI.setHandleControlChange(myControlChange);
 
+  //  setup our controls
+
   //  setup our oscillators
   oscillator1 = { &waveform1, &lfo1, &filter1, &mixer1, &envelope1 };
   oscillator2 = { &waveform2, &lfo2, &filter2, &mixer2, &envelope2 };

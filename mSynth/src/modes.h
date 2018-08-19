@@ -1,7 +1,7 @@
 #ifndef MMODES_H
 #define MMODES_H
 
-#include "parameters.h"
+#include "controls.h"
 
 struct ModeControl {
   Parameter parameter;

@@ -3,7 +3,7 @@
 
 #include "hardware.h"
 #include "synth.h"
-#include "parameters.h"
+#include "controls.h"
 #include "modes.h"
 
 Synth * synth = Synth::getInstance();
