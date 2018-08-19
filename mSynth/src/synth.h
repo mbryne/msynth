@@ -25,6 +25,15 @@ struct Oscillator {
   uint8_t velocity = 0;
 };
 
+struct EnumClassHash
+{
+    template <typename T>
+    std::size_t operator()(T t) const
+    {
+        return static_cast<std::size_t>(t);
+    }
+};
+
 class Synth {
   public:
   	// static method to get the instance
@@ -48,11 +57,11 @@ class Synth {
     float masterVolume;
     float pitchBend;  // -1/+1 oct
     bool  velocityOn;
-
   private:
   	Synth();
   	Synth(Synth const&); // copy disabled
   	void operator=(Synth const&); // assigment disabled
+    std::unordered_map<Parameter, SynthControl, EnumClassHash> controls;
 };
 
 #endif

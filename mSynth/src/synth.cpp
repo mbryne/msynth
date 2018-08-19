@@ -1,5 +1,9 @@
 #include "synth.h"
 
+//////////////////////////////////
+//  SYNTH VARIABLES
+//////////////////////////////////
+
 // define tuning of A4 in Hz
 #define SYNTH_TUNING 440
 
@@ -10,6 +14,10 @@
 // keep low so filter does not saturate with resonance
 #define GAIN_OSC 0.5
 
+//////////////////////////////////
+//  SYNTH DEFINITION
+//////////////////////////////////
+
 // GUItool: begin automatically generated code
 #include <Audio.h>
 #include <Wire.h>
@@ -17,13 +25,6 @@
 #include <SD.h>
 #include <SerialFlash.h>
 
-#include <Audio.h>
-#include <Wire.h>
-#include <SPI.h>
-#include <SD.h>
-#include <SerialFlash.h>
-
-// GUItool: begin automatically generated code
 AudioSynthWaveform       waveform1;      //xy=156.44441986083984,411.0000066757202
 AudioSynthWaveform       waveform2; //xy=161.77778244018555,512.2222270965576
 AudioSynthWaveform       lfo1;      //xy=165.44441986083984,451.0000066757202
@@ -61,13 +62,22 @@ AudioConnection          patchCord20(mainMixer, 0, i2s1, 1);
 AudioControlSGTL5000     sgtl5000_1;     //xy=1235.666660308838,1035.3332824707031
 // GUItool: end automatically generated code
 
-uint8_t waveforms[6] = {
+//////////////////////////////////
+//  ARRAYS / STRUCTS
+//////////////////////////////////
+
+uint8_t waveforms[4] = {
   WAVEFORM_SINE,
   WAVEFORM_SQUARE,
   WAVEFORM_TRIANGLE,
-  WAVEFORM_SAWTOOTH,
-  WAVEFORM_SAWTOOTH_REVERSE,
-  WAVEFORM_PULSE
+  WAVEFORM_SAWTOOTH
+};
+
+String waveFormLabels[4] = {
+  "Sine",
+  "Square",
+  "Triangle",
+  "Sawtooth"
 };
 
 enum FilterMode_t {
@@ -77,6 +87,10 @@ enum FilterMode_t {
   FILTEROFF,
   FILTERMODE_N,
 };
+
+//////////////////////////////////
+//  CONSTRUCTOR
+//////////////////////////////////
 
 Synth::Synth() {
 
@@ -91,6 +105,13 @@ void Synth::setup() {
 
   //  setup our controls
 
+  //  MIXER
+  controls.insert({ Parameter::MASTER_VOLUME, { "Master Volume", 0, 127 } });
+
+  //  OSCILLATOR 1
+  SynthControl control = SynthControl("Oscillator 1", 0, 127);
+  control.setOptions(waveFormLabels);
+
   //  setup our oscillators
   oscillator1 = { &waveform1, &lfo1, &filter1, &mixer1, &envelope1 };
   oscillator2 = { &waveform2, &lfo2, &filter2, &mixer2, &envelope2 };
@@ -103,6 +124,10 @@ void Synth::setup() {
   resetAll();
 
 }
+
+//////////////////////////////////
+//  MANAGE VALUES
+//////////////////////////////////
 
 int Synth::getValue(Parameter parameter) {
 
@@ -158,8 +183,6 @@ String Synth::typeName(uint8_t type) {
     case 1: return "Square";
     case 2: return "Triangle";
     case 3: return "Sawtooth";
-    case 4: return "Sawtooth Rev";
-    case 5: return "Pulse";
   }
   return "";
 }

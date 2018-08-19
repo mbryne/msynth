@@ -56,20 +56,4 @@ class SynthControl {
     std::vector <String> options;
 };
 
-struct EnumClassHash
-{
-    template <typename T>
-    std::size_t operator()(T t) const
-    {
-        return static_cast<std::size_t>(t);
-    }
-};
-
-class Controls {
-  public:
-      Controls();
-  private:
-      std::unordered_map<Parameter, SynthControl, EnumClassHash> controls;
-};
-
 #endif
