@@ -109,8 +109,7 @@ void Synth::setup() {
   controls.insert({ Parameter::MASTER_VOLUME, { "Master Volume", 0, 127 } });
 
   //  OSCILLATOR 1
-  SynthControl control = SynthControl("Oscillator 1", 0, 127);
-  control.setOptions(waveFormLabels);
+  controls.insert({ Parameter::OSC_1_WAVEFORM, { "Oscillator 1", 0, 127, waveFormLabels } });
 
   //  setup our oscillators
   oscillator1 = { &waveform1, &lfo1, &filter1, &mixer1, &envelope1 };

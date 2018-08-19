@@ -28,9 +28,18 @@ enum struct Parameter {
 
 class SynthControl {
   public:
-    SynthControl( String inputLabel, int inputMin = 0, int inputMax = 127 )
+    SynthControl( String inputLabel )
+      : label (inputLabel)
+    {
+    };
+    SynthControl( String inputLabel, int inputMin, int inputMax )
       : label (inputLabel), min (inputMin), max (inputMax)
     {
+    };
+    SynthControl( String inputLabel, int inputMin, int inputMax, String newOptions[] )
+      : label (inputLabel), min (inputMin), max (inputMax)
+    {
+      setOptions(newOptions);
     };
     // Control( String label, int min = 0, int max = 127, String options[] ) {
     //     label = label;
@@ -49,7 +58,8 @@ class SynthControl {
     void setOptions( String newOptions[] ) {
       divider = 4;
       hasOptions = true;
-      options.assign(newOptions, newOptions + sizeof(newOptions));
+      int numberofelements = sizeof(newOptions)/sizeof(newOptions[0]);
+      options.assign(newOptions, newOptions +  numberofelements);
     }
   private:
     bool hasOptions = false;
